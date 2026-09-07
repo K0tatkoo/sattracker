@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>Orbit — Satellite Tracker</title>
+<link rel="stylesheet" href="styles.css" />
+
+<!-- Watchdog: never let the loading screen hang. Surface load/parse errors and
+     force-clear the boot overlay after 12 s no matter what. -->
+<script>
+  window.addEventListener('error', function (e) {
+    var t = document.querySelector('#boot .t');
+    if (t) t.textContent = 'Error: ' + ((e && e.message) || 'failed to load');
+  });
+  setTimeout(function () {
+    var b = document.getElementById('boot');
+    if (b && !b.classList.contains('hide')) {
+      var t = b.querySelector('.t');
+      if (typeof THREE === 'undefined' && t) t.textContent = 'Could not load 3D engine (lib/three.min.js).';
+      b.classList.add('hide');
+    }
+  }, 12000);
+</script>
+
+<!-- All libraries are bundled locally (assets/lib) so the app works offline and
+     loads correctly from file:///android_asset with no CDN dependency. -->
+<script src="lib/three.min.js"></script>          <!-- three.js (UMD global THREE) -->
+<script src="lib/OrbitControls.js"></script>      <!-- THREE.OrbitControls -->
+<script src="lib/satellite.min.js"></script>      <!-- SGP4 orbit propagation -->
+<script src="lib/earth-texture.js"></script>      <!-- Earth texture as data: URI (window.EARTH_TEX) -->
+</head>
+<body>
+  <div id="scene"></div>
+
+  <div id="topbar">
+    <div class="brand">ORBIT<span class="dot">.</span></div>
+    <div class="spacer"></div>
+    <button class="btn iconbtn" id="logToggle" title="Live signal log">📶</button>
+    <button class="btn iconbtn" id="gnssToggle" title="Toggle GNSS panel">📡</button>
+    <button class="btn iconbtn" id="settingsBtn">⚙</button>
+  </div>
+
+  <!-- Live GNSS panel: the satellites your phone is actually using -->
+  <div id="gnss" class="panel">
+    <div class="head" id="gnssHead"><h3>Your phone is using</h3></div>
+    <div class="body">
+      <div class="big"><span id="gnssUsed">0</span><small> / <span id="gnssTotal">0</span> in view</small></div>
+      <div class="status" id="gnssStatus">Acquiring satellites…</div>
+      <div id="consts"></div>
+      <canvas id="skyplot" width="182" height="182"></canvas>
+      <div class="next">Next rise in <b id="nextRise">—</b></div>
+    </div>
+  </div>
+
+  <!-- Category toggles -->
+  <div id="cats"></div>
+
+  <!-- Satellite info card -->
+  <div id="info" class="panel">
+    <div class="close" id="infoClose">×</div>
+    <div class="title" id="iName">—</div>
+    <span class="tag" id="iTag">—</span>
+    <div class="grid">
+      <div class="kv"><div class="k">Country</div><div class="v" id="iCountry">—</div></div>
+      <div class="kv"><div class="k">Operator</div><div class="v" id="iOperator">—</div></div>
+      <div class="kv"><div class="k">Purpose</div><div class="v" id="iPurpose">—</div></div>
+      <div class="kv"><div class="k">NORAD ID</div><div class="v" id="iNorad">—</div></div>
+      <div class="kv"><div class="k">Altitude</div><div class="v" id="iAlt">—</div></div>
+      <div class="kv"><div class="k">Speed</div><div class="v" id="iSpeed">—</div></div>
+      <div class="kv"><div class="k">Sub-point</div><div class="v" id="iSub">—</div></div>
+      <div class="kv"><div class="k">From you</div><div class="v" id="iLook">—</div></div>
+    </div>
+    <div class="pass">Next pass over you: <span class="v" id="iPass">calculating…</span></div>
+    <a class="more" id="iMore" href="#">Full record on Celestrak ›</a>
+  </div>
+
+  <!-- About sheet -->
+  <div class="backdrop" id="backdrop"></div>
+  <div id="sheet" class="panel">
+    <h2 id="sheetTitle">Orbit</h2>
+    <p id="sheetBody">Real satellites in real time, propagated on your phone from Celestrak orbital elements, plus the GNSS satellites your phone is actually using right now. Free, no ads, no accounts, and your location never leaves the device.</p>
+    <p class="credit">Orbits from <a href="#" data-ext="https://celestrak.org">Celestrak</a> · propagation by satellite.js · rendering by three.js</p>
+    <div class="row">
+      <button class="btn" id="closeSheet" style="flex:1">Close</button>
+    </div>
+  </div>
+
+  <!-- Live signal log — real raw GNSS measurements received from the satellites -->
+  <div id="log" class="panel">
+    <div class="loghead">
+      <div class="logtitle"><span class="livedot"></span> SIGNAL LOG</div>
+      <div class="logsub">live raw GNSS data · <span id="logCount">0</span> events</div>
+      <button class="logclose" id="logClose">×</button>
+    </div>
+    <div id="logBody"><div class="logrow logmuted">Waiting for satellite signal data… (needs location permission + open sky)</div></div>
+  </div>
+
+  <div id="toast"></div>
+  <div id="boot"><div><div class="ring"></div><div class="t">Contacting satellites…</div></div></div>
+
+  <script src="globe.js"></script>
+</body>
+</html>

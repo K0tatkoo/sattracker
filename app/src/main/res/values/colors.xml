@@ -1,0 +1,7 @@
+<resources>
+    <color name="space">#05070E</color>
+    <color name="space_dark">#02030A</color>
+    <color name="cyan">#38E1FF</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+</resources>

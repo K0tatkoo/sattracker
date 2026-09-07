@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The 3D globe and every piece of in-app UI live inside this WebView, so the
+     activity layout is only the frame that holds it. It used to be a vertical
+     LinearLayout with a second row for an AdMob banner; the ads are gone, and a
+     weighted LinearLayout with one child is just a FrameLayout with extra steps. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/space">
+
+    <WebView
+        android:id="@+id/webView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</FrameLayout>

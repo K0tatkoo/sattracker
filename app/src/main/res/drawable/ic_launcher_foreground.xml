@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Globe -->
+    <path
+        android:pathData="M54,30 a24,24 0 1,0 0.01,0 z"
+        android:fillColor="#0E2A44" />
+    <path
+        android:pathData="M54,30 a24,24 0 1,0 0.01,0 z"
+        android:strokeColor="#38E1FF"
+        android:strokeWidth="1.6"
+        android:fillColor="#00000000" />
+    <!-- graticule -->
+    <path android:pathData="M30,54 h48" android:strokeColor="#2E6E8E" android:strokeWidth="1" android:fillColor="#00000000"/>
+    <path android:pathData="M54,30 v48" android:strokeColor="#2E6E8E" android:strokeWidth="1" android:fillColor="#00000000"/>
+    <path android:pathData="M35,42 q19,10 38,0" android:strokeColor="#2E6E8E" android:strokeWidth="1" android:fillColor="#00000000"/>
+    <path android:pathData="M35,66 q19,-10 38,0" android:strokeColor="#2E6E8E" android:strokeWidth="1" android:fillColor="#00000000"/>
+    <!-- orbit -->
+    <path
+        android:pathData="M54,54 m-34,0 a34,16 -25 1,0 68,0 a34,16 -25 1,0 -68,0"
+        android:strokeColor="#38E1FF"
+        android:strokeWidth="1.4"
+        android:fillColor="#00000000" />
+    <!-- satellite dot -->
+    <path android:pathData="M84,40 a3,3 0 1,0 0.01,0 z" android:fillColor="#FFFFFF"/>
+</vector>

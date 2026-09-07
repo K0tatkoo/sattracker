@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Orbit — Satellite Tracker</string>
+
+    <string name="location_rationale">Location is used to show which GNSS satellites your phone is currently using and to compute satellite passes over your position. Your location never leaves the device.</string>
+</resources>
