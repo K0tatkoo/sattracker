@@ -24,10 +24,10 @@ android {
         applicationId = "com.kotatko.sattracker"
         minSdk = 26          // Android 8.0 — covers ~95% of devices, needed for GnssStatus APIs
         targetSdk = 35
-        // 2 / 1.1.0: the AdMob banner and the Play Billing "remove ads" purchase
-        // were taken out completely. See the changelog in README.md.
-        versionCode = 2
-        versionName = "1.1.0"
+        // 3 / 1.2.0: in-app updates, from the About sheet. See the changelog
+        // in README.md; 1.1.0 was the release that took the ads out.
+        versionCode = 3
+        versionName = "1.2.0"
     }
 
     signingConfigs {

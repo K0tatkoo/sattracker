@@ -6,6 +6,14 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!--
+      Installing an update the app downloaded itself. This is not a licence to
+      install silently: Android still shows its own confirmation, and the user
+      has to switch this app on under "Install unknown apps" before the prompt
+      will even appear. See update/Updater.kt.
+    -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
     <!-- Location: read which GNSS satellites the phone is using + compute passes over you -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />

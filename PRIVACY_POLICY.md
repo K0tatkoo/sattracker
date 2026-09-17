@@ -19,15 +19,22 @@ any kind. This policy describes what the app actually does with data on your dev
 - **No accounts, no profiles.** No sign-in, and no collection of your name, email, contacts,
   photos or advertising identifier.
 
-## The one network request it makes
+## The two servers it talks to
 
-The app fetches public satellite orbital data (TLE sets) from **Celestrak** (celestrak.org).
-These are ordinary web requests for public files: they carry no identity and no location, and
-nothing about you is sent with them. Celestrak will see the request the way any website sees a
-visitor, including your IP address. Their policies are at <https://celestrak.org>.
+**Celestrak** (celestrak.org) — public satellite orbital data (TLE sets). Ordinary web requests
+for public files: they carry no identity and no location, and nothing about you is sent with them.
+Celestrak will see the request the way any website sees a visitor, including your IP address.
+Their policies are at <https://celestrak.org>.
 
-That is the complete list. There is no other server, no analytics endpoint, and no third-party
-SDK that phones home.
+**n3d-store.com** — where the app was downloaded from, and, since version 1.2.0, where it checks
+for its own updates. The request asks one question — what is the newest version — and sends
+nothing but the app's name and version in the User-Agent header. If a newer version exists and you
+choose to install it, the APK is fetched from the same site. The check runs at most once a day and
+you can switch it off in the About sheet, after which nothing but a button you press yourself
+will ever make it.
+
+That is the complete list. There is no analytics endpoint and no third-party SDK that phones
+home.
 
 ## No advertising, no purchases
 
@@ -41,12 +48,15 @@ the AdMob or Play Billing libraries, requests no advertising identifier, and hol
 | Permission | Why | Optional? |
 |---|---|---|
 | `ACCESS_FINE_LOCATION` / `ACCESS_COARSE_LOCATION` | Centre the globe on you, GNSS sky-plot, pass predictions | Yes — deny it and everything else still works |
-| `INTERNET` / `ACCESS_NETWORK_STATE` | Fetch orbital data from Celestrak | Without it the app falls back to the orbital snapshots bundled in the APK |
+| `INTERNET` / `ACCESS_NETWORK_STATE` | Fetch orbital data from Celestrak, and check n3d-store.com for a new version of the app | Without it the app falls back to the orbital snapshots bundled in the APK |
+| `REQUEST_INSTALL_PACKAGES` | Install an update the app downloaded for itself | Yes — Android also asks you to confirm every install, and will not even show that prompt until you switch Orbit on under "Install unknown apps" |
 
 ## Your choices
 
 Deny or revoke location at any time in Android Settings; the GNSS panel and pass predictions
-simply switch off and the rest of the app is unaffected. Uninstalling removes every cached file.
+simply switch off and the rest of the app is unaffected. Turn off "Check by itself" in the About
+sheet and the app will never contact n3d-store.com unless you press the button yourself.
+Uninstalling removes every cached file.
 
 ## Children
 

@@ -51,7 +51,22 @@ anywhere in the project.
 
 ---
 
-## 3. Ads and in-app purchases were removed (v1.1.0)
+## 3. The app updates itself (v1.2.0)
+
+Orbit is not on Play, so nothing would otherwise tell anybody a new version exists. Since 1.2.0
+the About sheet carries an Updates block that asks `n3d-store.com/api/apps/orbit/update` what the
+newest build is, downloads `/apk/orbit.apk` if it is newer, checks it against the SHA-256 the
+store published and against this app's own signing certificate, and hands it to Android's package
+installer — which still shows its own confirmation.
+
+`update/Updater.kt` is the whole of it and is the same file in all five published apps, differing
+only in the slug and package name. `MainActivity` pushes every state change into the sheet through
+`SatBridge.onUpdate()`, so the JavaScript holds no update state of its own.
+
+It also looks by itself, at most once a day, silently — no spinner and no error if the phone is
+offline. That is switchable in the sheet.
+
+## 4. Ads and in-app purchases were removed (v1.1.0)
 
 Up to v1.0.0 this app carried an AdMob banner and a one-time "remove ads" Play Billing purchase,
 both wired up with Google's **sample/test** ids. Both were taken out completely in v1.1.0, because
@@ -81,7 +96,7 @@ attribution in it.
 
 ---
 
-## 4. If you ever do publish it to Play
+## 5. If you ever do publish it to Play
 
 - Build a signed **App Bundle** (*Build ▸ Generate Signed Bundle / APK*) rather than an APK.
 - Host a privacy policy URL — mandatory because the app requests location. `PRIVACY_POLICY.md`
@@ -92,7 +107,7 @@ attribution in it.
 
 ---
 
-## 5. Architecture
+## 6. Architecture
 
 ```
 WebView (assets/globe.html · globe.js · styles.css)   ← 3D globe + all UI, orbit math (SGP4)
@@ -113,14 +128,14 @@ MainActivity (Kotlin)
 - TLE data is cached for 3 h (`TleRepository.CACHE_TTL_MS`) to respect Celestrak's fair-use policy.
   On first launch with no network, the app falls back to the bundled snapshots in `assets/tle/`.
 
-## 6. Data sources & attribution
+## 7. Data sources & attribution
 
 - Orbital elements: **Celestrak** (T.S. Kelso). Please keep within their access policy.
 - Propagation: **satellite.js** (MIT). Rendering: **three.js** (MIT).
 - Satellite metadata (country/operator/purpose) is a curated best-effort map in `globe.js`
   (`resolveMeta`). For richer data, integrate the **Celestrak SATCAT** or **UCS Satellite Database**.
 
-## 7. Known limitations / next steps
+## 8. Known limitations / next steps
 
 - GNSS "in use" satellites can't be matched 1:1 to catalog objects (PRN vs NORAD id), so they're
   shown in their own sky-plot rather than highlighted on the 3D globe. This is technically correct.

@@ -81,6 +81,22 @@
     <h2 id="sheetTitle">Orbit</h2>
     <p id="sheetBody">Real satellites in real time, propagated on your phone from Celestrak orbital elements, plus the GNSS satellites your phone is actually using right now. Free, no ads, no accounts, and your location never leaves the device.</p>
     <p class="credit">Orbits from <a href="#" data-ext="https://celestrak.org">Celestrak</a> · propagation by satellite.js · rendering by three.js</p>
+
+    <!-- Updates. Orbit is not on Play, so this is the only thing that will ever
+         tell somebody a new version exists. Everything in here is drawn from
+         the state object native pushes into SatBridge.onUpdate(). -->
+    <div id="upd">
+      <div class="updhead">
+        <span class="updver" id="updInstalled">Orbit</span>
+        <label class="updauto"><span>Check by itself</span>
+          <input type="checkbox" id="updAuto" /><i></i></label>
+      </div>
+      <div class="updmsg" id="updMsg"></div>
+      <div class="updmsg" id="updNotes"></div>
+      <div class="updbar" id="updBar"><i></i></div>
+      <div class="updrow" id="updActions"></div>
+    </div>
+
     <div class="row">
       <button class="btn" id="closeSheet" style="flex:1">Close</button>
     </div>

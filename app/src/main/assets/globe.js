@@ -630,6 +630,7 @@ window.SatBridge = {
     lastRiseCalc=0;
   },
   onPermission(granted){ if(!granted) toast('Location off — GNSS & passes disabled'); },
+  onUpdate(json){ try{ renderUpdate(JSON.parse(json)); }catch(e){} },
 };
 
 // ============================================================================
@@ -643,6 +644,98 @@ document.querySelectorAll('[data-ext]').forEach(a=>a.onclick=e=>{
   e.preventDefault(); window.Android && window.Android.openUrl(a.dataset.ext);
 });
 $('#backdrop').onclick=closeSheet;
+$('#updAuto').onchange=e=>{ window.Android && window.Android.updateSetAuto(e.target.checked); };
+
+// ---- updates -------------------------------------------------------------
+// Redrawn from scratch on every state push. Nothing here remembers anything:
+// the phase decides the sentence, the bar and the buttons, so the sheet can
+// never disagree with what the app is actually doing.
+function fmtBytes(n){
+  if (!n || n <= 0) return '';
+  return n < 1048576 ? `${Math.ceil(n/1024)} kB` : `${(n/1048576).toFixed(1)} MB`;
+}
+
+function renderUpdate(u){
+  const msg=$('#updMsg'), notes=$('#updNotes'), bar=$('#updBar'), row=$('#updActions');
+  $('#updInstalled').textContent=`Orbit ${u.installed||''}`.trim();
+  $('#updAuto').checked=!!u.auto;
+
+  msg.className='updmsg';
+  msg.textContent='';
+  notes.textContent='';
+  bar.classList.remove('show');
+  row.innerHTML='';
+
+  if (!u.canSelfUpdate){
+    msg.textContent='This build cannot replace itself.';
+    return;
+  }
+
+  const button=(label,fn,id)=>{
+    const b=document.createElement('button');
+    b.className='btn'; b.textContent=label; if(id) b.id=id; b.onclick=fn;
+    row.appendChild(b);
+    return b;
+  };
+  const check=()=>button('Check for updates',()=>window.Android&&window.Android.updateCheck());
+
+  switch(u.phase){
+    case 'checking':
+      msg.textContent='Checking n3d-store.com…';
+      break;
+
+    case 'current':
+      msg.textContent='This is the newest version.';
+      check();
+      break;
+
+    case 'available': {
+      // The size goes in the sentence, not on the button: at phone width two
+      // buttons share the row, and "Download and install - 2.3 MB" wraps to two
+      // lines inside its pill while "Not now" stays one, which reads as a
+      // mistake rather than as emphasis.
+      const size=fmtBytes(u.size);
+      msg.className='updmsg new';
+      msg.textContent=size?`Version ${u.version} is out \u00b7 ${size}`:`Version ${u.version} is out.`;
+      if (u.notes) notes.textContent=u.notes;
+      button('Download and install',
+        ()=>window.Android&&window.Android.updateDownload()).classList.add('active');
+      button('Not now',()=>window.Android&&window.Android.updateDismiss());
+      break;
+    }
+
+    case 'downloading': {
+      msg.textContent='Downloading…';
+      bar.classList.add('show');
+      const pct=u.total>0 ? Math.min(100,(u.bytes/u.total)*100) : 0;
+      bar.firstElementChild.style.width=`${pct}%`;
+      button('Cancel',()=>window.Android&&window.Android.updateCancel());
+      break;
+    }
+
+    case 'allow':
+      msg.textContent='The update is downloaded and checked. Android will not let an app '
+        +'install anything until you switch Orbit on under \u201cInstall unknown apps\u201d '
+        +'\u2014 one switch, on the screen this button opens.';
+      button('Open that setting',
+        ()=>window.Android&&window.Android.updateGrantInstall()).classList.add('active');
+      break;
+
+    case 'installing':
+      msg.textContent='Opening Android\u2019s installer…';
+      break;
+
+    case 'failed':
+      msg.className='updmsg bad';
+      msg.textContent=[u.error,u.detail].filter(Boolean).join(' ');
+      check();
+      break;
+
+    default:
+      check();
+  }
+}
+
 $('#gnssHead').onclick=()=>$('#gnss').classList.toggle('collapsed');
 $('#gnssToggle').onclick=()=>{
   const p=$('#gnss'); p.classList.toggle('hidden');
