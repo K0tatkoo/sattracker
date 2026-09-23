@@ -142,3 +142,7 @@ MainActivity (Kotlin)
 - Starlink is capped (see `CATEGORIES[].cap` in `globe.js`) to keep the globe readable and fast.
 - Regular phones (incl. the S24) don't route calls/data through comms satellites, so only
   positioning (GNSS) satellites are genuinely "in use." Everything else is tracked/visualized.
+
+## License
+
+MIT — see [LICENSE](LICENSE). Built by Danny ([K0tatkoo](https://github.com/K0tatkoo)); installable builds are on [n3d-store.com/apps](https://n3d-store.com/apps.html).
