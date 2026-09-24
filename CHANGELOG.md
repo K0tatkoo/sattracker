@@ -5,6 +5,12 @@ when something people rely on changes or goes away, MINOR for something new,
 PATCH for a fix — and each is a git tag (`vX.Y.Z`) on the commit that
 shipped. `tools/release` in Claudes Projects writes these entries.
 
+## 2.0.1 — 2026-09-24
+
+A thin, calm ring marks the satellite you tapped, instead of the thick violet band
+
+- Make the selection ring a thin ring just outside the dot
+
 ## 2.0.0 — 2026-09-24
 
 Neumorphic redesign in the n3d style, light and dark following the phone; satellites tap where they are drawn, at any zoom; the satellites your phone is using glow on their own dots
