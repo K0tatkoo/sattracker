@@ -386,11 +386,27 @@ function buildSatSystem(){
   scene.add(satPoints);
 }
 
+// The ring round the tapped satellite: a thin circle just outside the dot, a
+// constant size on screen like the dot itself. It used to be a flat mesh in
+// world units, scaled up with zoom, which drew a thick violet band ~60 px
+// across whatever the dot's size.
+let _ring;
+function ringTexture(){
+  if(_ring) return _ring;
+  const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d');
+  x.strokeStyle='#fff'; x.lineWidth=8; x.beginPath(); x.arc(64,64,56,0,Math.PI*2); x.stroke();
+  _ring=new THREE.CanvasTexture(c); return _ring;
+}
 function buildSelectionRing(){
-  selRing=new THREE.Mesh(
-    new THREE.RingGeometry(0.055,0.085,40),
-    new THREE.MeshBasicMaterial({ color:0x9b7cff, side:THREE.DoubleSide, transparent:true, opacity:0.95, depthWrite:false })
-  );
+  const rg=new THREE.BufferGeometry();
+  rg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3),3));
+  selRing=new THREE.Points(rg, new THREE.PointsMaterial({
+    size:28, map:ringTexture(), color:0x9b7cff, transparent:true, opacity:0.9,
+    depthTest:false, depthWrite:false, sizeAttenuation:false
+  }));
+  // Shown or hidden whole, with its satellite (see propagate): depth-tested,
+  // a satellite near the horizon would have the bottom of its ring cut off.
+  selRing.renderOrder = 1;        // over its own dot (it is hollow, so the dot shows through)
   selRing.visible=false; scene.add(selRing);
 
   // "You are here": one green dot, a constant size on screen, breathing gently.
@@ -508,7 +524,7 @@ function propagate(now){
 
   if (state.selected>=0){
     const s=state.sats.find(x=>x.norad===state.selected && x.alive);
-    if (s && s.pos){ selRing.position.copy(s.pos); selRing.lookAt(camera.position); selRing.visible=true; }
+    if (s && s.pos){ selRing.position.copy(s.pos); selRing.visible=!hiddenByEarth(s.pos); }
     else selRing.visible=false;
   }
 }
@@ -1277,10 +1293,9 @@ function animate(now){
     // The raised-globe shadow: face the camera, sized to the silhouette at the centre plane.
     plinth.quaternion.copy(camera.quaternion);
     plinth.scale.setScalar(camDist/Math.sqrt(Math.max(1e-4, camDist*camDist-SCENE_R*SCENE_R)));
-    // Keep markers a roughly constant on-screen size.
-    const ms=Math.max(0.55, Math.min(camDist*0.34, 7));
     satPoints.material.size = Math.max(7, Math.min(18, 22 - camDist*1.0)) * (THEME.dotScale||1);  // smaller when zoomed out
-    selRing.scale.setScalar(ms);
+    // The ring sits a few px clear of the dot at every zoom: ~1.75 px of line.
+    selRing.material.size = Math.max(20, satPoints.material.size + 12);
     // "You are here": one green dot that breathes, on the same 1.6 s beat as
     // the live dots in the panels. No ring, no glow.
     if (state.observer){
