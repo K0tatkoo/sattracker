@@ -1,9 +1,13 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Theme.SatelliteTracker" parent="Theme.Material3.Dark.NoActionBar">
-        <item name="android:statusBarColor">@color/space_dark</item>
-        <item name="android:navigationBarColor">@color/space_dark</item>
-        <item name="android:windowBackground">@color/space</item>
-        <item name="colorPrimary">@color/cyan</item>
-        <item name="android:windowLightStatusBar">false</item>
+    <!-- DayNight, so the app follows the phone's dark/light setting like the
+         other n3d apps. It also decides what the WebView reports as
+         prefers-color-scheme on Android 13+, though the page does not rely on
+         that: MainActivity tells it outright (Android.theme / onTheme). The bar
+         icon colours are set in code, because they have to change live. -->
+    <style name="Theme.SatelliteTracker" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@color/bg</item>
+        <item name="android:navigationBarColor">@color/bg</item>
+        <item name="android:windowBackground">@color/bg</item>
+        <item name="colorPrimary">@color/accent</item>
     </style>
 </resources>

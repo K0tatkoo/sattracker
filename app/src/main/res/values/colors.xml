@@ -1,7 +1,9 @@
 <resources>
-    <color name="space">#05070E</color>
-    <color name="space_dark">#02030A</color>
-    <color name="cyan">#38E1FF</color>
+    <!-- The n3d surface colour, the same "bg" token as styles.css. The window and the
+         WebView are painted it before the page draws, so opening the app never
+         flashes a colour the page does not use. Dark in values-night. -->
+    <color name="bg">#E7EAF1</color>
+    <color name="accent">#5F43E8</color>
     <color name="white">#FFFFFFFF</color>
     <color name="black">#FF000000</color>
 </resources>

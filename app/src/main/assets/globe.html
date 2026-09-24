@@ -4,6 +4,18 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <title>Orbit — Satellite Tracker</title>
+
+<!-- Theme before first paint. Native answers Android.theme() with the phone's
+     own dark/light setting, synchronously, so the first frame is already the
+     right colour; a plain browser falls back to its colour-scheme preference
+     (styles.css handles that case with a media query). -->
+<script>
+  (function () {
+    var t = null;
+    try { if (window.Android && Android.theme) t = String(Android.theme()); } catch (e) {}
+    if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
 <link rel="stylesheet" href="styles.css" />
 
 <!-- Watchdog: never let the loading screen hang. Surface load/parse errors and
@@ -31,24 +43,62 @@
 <script src="lib/earth-texture.js"></script>      <!-- Earth texture as data: URI (window.EARTH_TEX) -->
 </head>
 <body>
+  <!-- Every glyph in the app. No emoji: an emoji is drawn by whatever font the
+       phone has, so it looks different on every phone and ignores the theme.
+       These are strokes in currentColor. The dish and the signal bars are the
+       svgrepo files the owner picked, with their fixed black stroke taken out so
+       they follow the theme. They are balanced against each other by eye at
+       the real 21 px: the dish is drawn on a 32 grid and inks nearly all of
+       it, so its stroke is heavier; the bars ink only two thirds of theirs, so
+       they are drawn larger (styles.css). All three land at ~1.75 px. -->
+  <svg class="sprite" aria-hidden="true" focusable="false">
+    <symbol id="i-signal" viewBox="0 0 24 24">
+      <path stroke-width="1.85" d="M4 20V19M8 20V16M12 20V12M16 20V8M20 20V4"/>
+    </symbol>
+    <symbol id="i-dish" viewBox="0 0 32 32">
+      <g stroke-width="2.8">
+        <path d="M23.8,3.1c5.3,5.3,5.3,13.8,0,19.1s-13.8,5.3-19.1,0"/>
+        <path d="M14,26.5c-0.6,1-1,2.2-1,3.5h14c0-3-1.9-5.6-4.6-6.6"/>
+        <path d="M12,15L12,15c2.2,0,4-1.8,4-4v0L6,5L12,15z"/>
+        <path d="M11,8c5.1-4.8,10.7-7,12.8-4.9c2.2,2.2-0.3,8.2-5.6,13.5S7,24.4,4.8,22.2C2.8,20.2,4.7,15,9,10"/>
+      </g>
+    </symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24">
+      <path d="M18.86 9.5L21.44 10.25L21.44 13.75L18.86 14.5L18.62 15.09L19.91 17.44L17.44 19.91L15.09 18.62L14.5 18.86L13.75 21.44L10.25 21.44L9.5 18.86L8.91 18.62L6.56 19.91L4.09 17.44L5.38 15.09L5.14 14.5L2.56 13.75L2.56 10.25L5.14 9.5L5.38 8.91L4.09 6.56L6.56 4.09L8.91 5.38L9.5 5.14L10.25 2.56L13.75 2.56L14.5 5.14L15.09 5.38L17.44 4.09L19.91 6.56L18.62 8.91Z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </symbol>
+    <symbol id="i-close" viewBox="0 0 24 24">
+      <path d="M6 6L18 18M18 6L6 18"/>
+    </symbol>
+    <!-- The brand mark: a planet and one orbit. -->
+    <symbol id="i-orbit" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="4"/>
+      <ellipse cx="12" cy="12" rx="10" ry="4.3" transform="rotate(-26 12 12)"/>
+      <circle cx="20.2" cy="7.3" r="1.4" fill="currentColor" stroke="none"/>
+    </symbol>
+  </svg>
+
   <div id="scene"></div>
 
   <div id="topbar">
-    <div class="brand">ORBIT<span class="dot">.</span></div>
+    <div class="brand"><svg class="ico"><use href="#i-orbit"/></svg><span>ORBIT<span class="dot">.</span></span></div>
     <div class="spacer"></div>
-    <button class="btn iconbtn" id="logToggle" title="Live signal log">📶</button>
-    <button class="btn iconbtn" id="gnssToggle" title="Toggle GNSS panel">📡</button>
-    <button class="btn iconbtn" id="settingsBtn">⚙</button>
+    <button class="btn iconbtn" id="logToggle" title="Live signal log" aria-label="Live signal log" aria-pressed="false">
+      <svg class="ico i-signal"><use href="#i-signal"/></svg></button>
+    <button class="btn iconbtn on" id="gnssToggle" title="Satellites your phone is using" aria-label="Satellites your phone is using" aria-pressed="true">
+      <svg class="ico i-dish"><use href="#i-dish"/></svg></button>
+    <button class="btn iconbtn" id="settingsBtn" title="About and updates" aria-label="About and updates">
+      <svg class="ico"><use href="#i-gear"/></svg></button>
   </div>
 
   <!-- Live GNSS panel: the satellites your phone is actually using -->
   <div id="gnss" class="panel">
-    <div class="head" id="gnssHead"><h3>Your phone is using</h3></div>
+    <h3 id="gnssHead"><span class="livedot"></span>Your phone is using</h3>
     <div class="body">
       <div class="big"><span id="gnssUsed">0</span><small> / <span id="gnssTotal">0</span> in view</small></div>
       <div class="status" id="gnssStatus">Acquiring satellites…</div>
       <div id="consts"></div>
-      <canvas id="skyplot" width="182" height="182"></canvas>
+      <div class="skywell"><canvas id="skyplot" width="292" height="292"></canvas></div>
       <div class="next">Next rise in <b id="nextRise">—</b></div>
     </div>
   </div>
@@ -58,34 +108,34 @@
 
   <!-- Satellite info card -->
   <div id="info" class="panel">
-    <div class="close" id="infoClose">×</div>
+    <button class="btn roundbtn close" id="infoClose" aria-label="Close"><svg class="ico"><use href="#i-close"/></svg></button>
     <div class="title" id="iName">—</div>
     <span class="tag" id="iTag">—</span>
-    <div class="grid">
-      <div class="kv"><div class="k">Country</div><div class="v" id="iCountry">—</div></div>
-      <div class="kv"><div class="k">Operator</div><div class="v" id="iOperator">—</div></div>
-      <div class="kv"><div class="k">Purpose</div><div class="v" id="iPurpose">—</div></div>
-      <div class="kv"><div class="k">NORAD ID</div><div class="v" id="iNorad">—</div></div>
-      <div class="kv"><div class="k">Altitude</div><div class="v" id="iAlt">—</div></div>
-      <div class="kv"><div class="k">Speed</div><div class="v" id="iSpeed">—</div></div>
-      <div class="kv"><div class="k">Sub-point</div><div class="v" id="iSub">—</div></div>
-      <div class="kv"><div class="k">From you</div><div class="v" id="iLook">—</div></div>
+    <div class="grid well">
+      <div class="kv"><div class="k">Country</div><div class="v">—</div></div>
+      <div class="kv"><div class="k">Operator</div><div class="v">—</div></div>
+      <div class="kv"><div class="k">Purpose</div><div class="v">—</div></div>
+      <div class="kv"><div class="k">NORAD ID</div><div class="v">—</div></div>
+      <div class="kv"><div class="k">Altitude</div><div class="v">—</div></div>
+      <div class="kv"><div class="k">Speed</div><div class="v">—</div></div>
+      <div class="kv"><div class="k">Sub-point</div><div class="v">—</div></div>
+      <div class="kv"><div class="k">From you</div><div class="v">—</div></div>
     </div>
     <div class="pass">Next pass over you: <span class="v" id="iPass">calculating…</span></div>
-    <a class="more" id="iMore" href="#">Full record on Celestrak ›</a>
+    <button class="btn more" id="iMore">Full record on N2YO ›</button>
   </div>
 
   <!-- About sheet -->
   <div class="backdrop" id="backdrop"></div>
   <div id="sheet" class="panel">
-    <h2 id="sheetTitle">Orbit</h2>
+    <h2 id="sheetTitle"><svg class="ico"><use href="#i-orbit"/></svg>Orbit</h2>
     <p id="sheetBody">Real satellites in real time, propagated on your phone from Celestrak orbital elements, plus the GNSS satellites your phone is actually using right now. Free, no ads, no accounts, and your location never leaves the device.</p>
     <p class="credit">Orbits from <a href="#" data-ext="https://celestrak.org">Celestrak</a> · propagation by satellite.js · rendering by three.js</p>
 
     <!-- Updates. Orbit is not on Play, so this is the only thing that will ever
          tell somebody a new version exists. Everything in here is drawn from
          the state object native pushes into SatBridge.onUpdate(). -->
-    <div id="upd">
+    <div id="upd" class="well">
       <div class="updhead">
         <span class="updver" id="updInstalled">Orbit</span>
         <label class="updauto"><span>Check by itself</span>
@@ -98,7 +148,7 @@
     </div>
 
     <div class="row">
-      <button class="btn" id="closeSheet" style="flex:1">Close</button>
+      <button class="btn" id="closeSheet">Close</button>
     </div>
   </div>
 
@@ -107,9 +157,9 @@
     <div class="loghead">
       <div class="logtitle"><span class="livedot"></span> SIGNAL LOG</div>
       <div class="logsub">live raw GNSS data · <span id="logCount">0</span> events</div>
-      <button class="logclose" id="logClose">×</button>
+      <button class="btn roundbtn" id="logClose" aria-label="Close"><svg class="ico"><use href="#i-close"/></svg></button>
     </div>
-    <div id="logBody"><div class="logrow logmuted">Waiting for satellite signal data… (needs location permission + open sky)</div></div>
+    <div id="logBody" class="well"><div class="logrow logmuted">Waiting for satellite signal data… (needs location permission + open sky)</div></div>
   </div>
 
   <div id="toast"></div>

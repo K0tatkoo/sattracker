@@ -1,180 +1,512 @@
-:root{
-  --bg:#070312; --bg2:#0d0722;
-  --glass:linear-gradient(155deg,rgba(45,30,80,.55),rgba(18,10,38,.42));
-  --glass-solid:#150c2c;
-  --line:rgba(179,150,255,.18); --line-strong:rgba(179,150,255,.34);
-  --violet:#b892ff; --magenta:#e06bff; --accent:#b892ff;
-  --txt:#f3eefe; --muted:#b3a2d8; --faint:#7d6ca8;
-  --good:#57e6c0; --warn:#ffd27a;
-  --radius:22px; --radius-sm:14px;
-  --shadow:0 16px 50px rgba(20,0,45,.55);
-  --glow:0 0 24px rgba(184,146,255,.35);
-  font-family:-apple-system,"Roboto","Segoe UI",system-ui,sans-serif;
+/* ---------------------------------------------------------------------------
+   Orbit — the n3d neumorphic ("soft UI") design system, the same one as the
+   store, the other five apps and every n3d site. The tokens below are the
+   store's (public/css/style.css) and CellScope's / Spectra's Palette.kt, value
+   for value, so Orbit reads as one of the family rather than a lookalike.
+
+   The whole look rests on one rule: a control is the SAME colour as the
+   surface behind it, and only two shadows separate them — a dark one on the
+   side away from the light and a light one on the side facing it. The light is
+   fixed at the top-left, everywhere, including on the globe (globe.js hangs its
+   lamp off the camera for exactly that reason). Raised = outer shadows;
+   pressed / inset (wells, switched-on toggles) = the same two moved inside.
+   No borders.
+
+   That is also why the 3D scene is cleared to --bg rather than to black: the
+   panels float over the scene, so the scene IS the surface behind them. On
+   near-black there is no room for a darker shadow and everything flattens.
+
+   Neumorphism's known weakness is contrast, so the softness is spent only on
+   surfaces: text, icons and satellite colours stay at full contrast.
+
+   Theme: native stamps data-theme before first paint (Android.theme(), the
+   phone's own dark/light setting) and pushes SatBridge.onTheme() when it
+   changes. The media query is only the fallback for a plain browser.
+   --------------------------------------------------------------------------- */
+
+:root {
+  color-scheme: dark;
+
+  --bg: #22252c;
+  --bg-deep: #1b1e24;
+  --dark: #171920;
+  --light: #2d313a;
+  --text: #eef1f7;
+  --text-dim: #a3abbd;
+  --text-faint: #737b8c;
+  --accent: #9b7cff;
+  --accent-2: #34e3ff;
+  --accent-grad-a: #6a45ff;
+  --accent-grad-b: #9a6bff;
+  --accent-ink: #ffffff;
+  --good: #4ade80;
+  --warn: #f5c451;
+  --bad: #ff6b6b;
+  --scrim: rgba(12, 13, 17, .55);
+
+  /* Satellite colours. One list, read by the chips, the log, the skyplot AND
+     the 3D scene (globe.js reads them back with getComputedStyle), so a colour
+     can never mean one thing on the globe and another on its chip. The dark
+     set is bright to glow on the slate; the light set is the same hues taken
+     dark enough to hold up on a light-grey globe. */
+  --c-stations: #ffffff;
+  --c-gps: #38e1ff;
+  --c-glonass: #ff7b7b;
+  --c-galileo: #8affc1;
+  --c-beidou: #ffcb5b;
+  --c-starlink: #b58bff;
+  --c-weather: #5bd0ff;
+  --c-science: #ff9edb;
+  --c-qzss: #c9a8ff;
+  --c-sbas: #7fb8ff;
+  --c-navic: #ffb38a;
+  --c-unknown: #93a7c4;
+  /* Text on a filled satellite-colour tag: the dark set is light, so dark ink. */
+  --tag-ink: #14161b;
+
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --r-xl: 30px;
+  --r-pill: 999px;
+
+  --d-1: 4px;
+  --d-2: 7px;
+  --d-3: 12px;
+  --sh-out-sm: var(--d-1) var(--d-1) calc(var(--d-1) * 2) var(--dark),
+               calc(var(--d-1) * -1) calc(var(--d-1) * -1) calc(var(--d-1) * 2) var(--light);
+  --sh-out: var(--d-2) var(--d-2) calc(var(--d-2) * 2) var(--dark),
+            calc(var(--d-2) * -1) calc(var(--d-2) * -1) calc(var(--d-2) * 2) var(--light);
+  --sh-out-lg: var(--d-3) var(--d-3) calc(var(--d-3) * 2) var(--dark),
+               calc(var(--d-3) * -1) calc(var(--d-3) * -1) calc(var(--d-3) * 2) var(--light);
+  --sh-in: inset var(--d-1) var(--d-1) calc(var(--d-1) * 2) var(--dark),
+           inset calc(var(--d-1) * -1) calc(var(--d-1) * -1) calc(var(--d-1) * 2) var(--light);
+  --sh-in-sm: inset 3px 3px 6px var(--dark), inset -3px -3px 6px var(--light);
+
+  /* A hair lighter at the top-left than the bottom-right: what stops a large
+     card reading as a flat slab. The same 12 % mixes as Palette.surfaceHigh /
+     surfaceLow, written out as hex because color-mix() needs a WebView from
+     2023 and an invalid gradient would blank the whole background. */
+  --surface-hi: #23262e;
+  --surface-lo: #21242b;
+  --surface: linear-gradient(145deg, var(--surface-hi), var(--surface-lo));
+
+  /* The one button motion every n3d site and app shares. */
+  --ease: cubic-bezier(.34, 1.4, .64, 1);
+  --ease-out: cubic-bezier(.22, 1, .36, 1);
+  --t: .22s var(--ease);
+
+  --mono: ui-monospace, "SF Mono", "Roboto Mono", Menlo, Consolas, monospace;
+  font-family: system-ui, -apple-system, "Roboto", "Segoe UI", sans-serif;
 }
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;color:var(--txt);overflow:hidden;overscroll-behavior:none;
-  background:
-    radial-gradient(120% 80% at 18% 0%,rgba(120,50,220,.28),transparent 55%),
-    radial-gradient(120% 90% at 90% 15%,rgba(224,107,255,.18),transparent 50%),
-    radial-gradient(140% 120% at 50% 110%,rgba(60,40,160,.30),transparent 60%),
-    #070312}
-button{font-family:inherit;color:var(--txt);cursor:pointer;border:none;background:none}
-canvas{display:block}
-#scene{position:fixed;inset:0;touch-action:none}
 
-/* ---------- liquid-glass surface ---------- */
-.panel,.btn,.chip{
-  background:var(--glass);
-  border:1px solid var(--line);
-  backdrop-filter:blur(22px) saturate(1.4);
-  -webkit-backdrop-filter:blur(22px) saturate(1.4);
-  box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.10), inset 0 -1px 0 rgba(120,60,200,.12);
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #e7eaf1;
+  --bg-deep: #dde1ea;
+  --dark: #c1c6d1;
+  --light: #ffffff;
+  --text: #1c2029;
+  --text-dim: #545c6c;
+  --text-faint: #7b8394;
+  --accent: #5f43e8;
+  --accent-2: #0a9fbd;
+  --accent-grad-a: #5734db;
+  --accent-grad-b: #7d54ef;
+  --good: #17914d;
+  --warn: #a06f04;
+  --bad: #cf3535;
+  --scrim: rgba(60, 66, 82, .28);
+  --surface-hi: #eaecf3;
+  --surface-lo: #e2e6ed;
+
+  --c-stations: #2a2f3a;
+  --c-gps: #0a93b8;
+  --c-glonass: #d23f3f;
+  --c-galileo: #13935a;
+  --c-beidou: #b07400;
+  --c-starlink: #6a4fe0;
+  --c-weather: #1f74c4;
+  --c-science: #c0418f;
+  --c-qzss: #8a4fd6;
+  --c-sbas: #2f62c9;
+  --c-navic: #c75a1d;
+  --c-unknown: #66708a;
+  --tag-ink: #ffffff;
 }
 
-/* ---------- top bar ---------- */
-#topbar{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;gap:9px;
-  padding:calc(env(safe-area-inset-top) + 12px) 15px 12px;z-index:20;pointer-events:none}
-#topbar > *{pointer-events:auto}
-.brand{font-weight:800;letter-spacing:3px;font-size:16px;
-  background:linear-gradient(90deg,#fff,#d9c6ff);-webkit-background-clip:text;background-clip:text;color:transparent;
-  text-shadow:0 0 26px rgba(184,146,255,.5)}
-.brand .dot{color:var(--magenta);-webkit-text-fill-color:var(--magenta)}
-.spacer{flex:1}
-.btn{color:var(--txt);border-radius:999px;padding:9px 15px;font-size:13px;font-weight:600;transition:transform .12s,border-color .2s,box-shadow .2s}
-.btn:active{transform:scale(.94)}
-.btn.active{border-color:rgba(184,146,255,.6);color:#e9deff;box-shadow:var(--glow),inset 0 1px 0 rgba(255,255,255,.12)}
-.credit{font-size:11.5px;opacity:.62;line-height:1.6;margin-top:-4px}
-.credit a{color:#d9c6ff}
-.iconbtn{width:42px;height:42px;padding:0;display:grid;place-items:center;font-size:17px}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    color-scheme: light;
+    --bg: #e7eaf1; --bg-deep: #dde1ea; --dark: #c1c6d1; --light: #ffffff;
+    --text: #1c2029; --text-dim: #545c6c; --text-faint: #7b8394;
+    --accent: #5f43e8; --accent-2: #0a9fbd; --accent-grad-a: #5734db; --accent-grad-b: #7d54ef;
+    --good: #17914d; --warn: #a06f04; --bad: #cf3535; --scrim: rgba(60, 66, 82, .28);
+    --surface-hi: #eaecf3; --surface-lo: #e2e6ed;
+    --c-stations: #2a2f3a; --c-gps: #0a93b8; --c-glonass: #d23f3f; --c-galileo: #13935a;
+    --c-beidou: #b07400; --c-starlink: #6a4fe0; --c-weather: #1f74c4; --c-science: #c0418f;
+    --c-qzss: #8a4fd6; --c-sbas: #2f62c9; --c-navic: #c75a1d; --c-unknown: #66708a;
+    --tag-ink: #ffffff;
+  }
+}
 
-/* ---------- panels ---------- */
-.panel{position:fixed;z-index:15;border-radius:var(--radius)}
+/* --------------------------------------------------------------------------- */
 
-/* GNSS "your phone" panel — compact + hideable */
-#gnss{left:14px;top:calc(env(safe-area-inset-top) + 68px);width:190px;padding:13px 15px}
-#gnss.hidden{display:none}
-#gnss h3{margin:0 0 3px;font-size:10px;letter-spacing:1.3px;color:var(--muted);text-transform:uppercase;
-  display:flex;align-items:center;gap:7px;cursor:pointer}
-#gnss h3::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--good);
-  box-shadow:0 0 10px var(--good);animation:live 1.6s infinite}
-@keyframes live{50%{opacity:.35}}
-#gnss .big{font-size:31px;font-weight:800;line-height:1.05;letter-spacing:-1px}
-#gnss .big small{font-size:11.5px;color:var(--muted);font-weight:500;letter-spacing:0}
-#gnss .status{font-size:11px;color:var(--warn);margin-top:3px}
-#consts{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
-.cst{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:7px;background:rgba(184,146,255,.08);
-  border:1px solid var(--line);color:var(--txt);letter-spacing:.3px}
-.cst b{color:var(--violet)}
-#skyplot{display:block;width:150px;height:150px;margin:9px auto 2px;filter:drop-shadow(0 4px 14px rgba(30,0,60,.5))}
-#gnss .next{margin-top:6px;font-size:11.5px;color:var(--muted)}
-#gnss .next b{color:var(--violet);font-variant-numeric:tabular-nums;font-weight:700}
-#gnss.collapsed .body{display:none}
+*, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+  margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none;
+  background: var(--bg); color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; padding: 0; }
+canvas { display: block; }
+#scene { position: fixed; inset: 0; touch-action: none; }
 
-/* ---------- category chips ---------- */
-#cats{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 14px);
-  z-index:15;display:flex;gap:9px;padding:0 14px;overflow-x:auto;scrollbar-width:none;
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 16px,#000 calc(100% - 16px),transparent)}
-#cats::-webkit-scrollbar{display:none}
-.chip{flex:0 0 auto;color:var(--txt);border-radius:999px;padding:9px 15px;font-size:13px;font-weight:600;
-  display:flex;align-items:center;gap:8px;opacity:.66;transition:opacity .2s,border-color .2s,transform .12s,box-shadow .2s;white-space:nowrap}
-.chip:active{transform:scale(.95)}
-.chip.on{opacity:1;border-color:var(--c);box-shadow:0 0 16px -2px var(--c),inset 0 1px 0 rgba(255,255,255,.12)}
-.chip .swatch{width:10px;height:10px;border-radius:50%;background:var(--c);box-shadow:0 0 12px var(--c);flex:0 0 auto}
-.chip.loading{animation:pulse 1s infinite}
-@keyframes pulse{50%{opacity:.4}}
+/* Icons: one sprite, drawn in currentColor so every glyph follows the theme.
+   Hidden by zero size, never display:none (a gradient inside a display:none
+   SVG is never built — the store's app-icon trap). */
+.sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+.ico {
+  width: 20px; height: 20px; flex: none;
+  fill: none; stroke: currentColor; stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round;
+}
 
-/* ---------- satellite info card ---------- */
-#info{left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom) + 74px);max-width:460px;margin:0 auto;
-  padding:18px 20px 16px;transform:translateY(150%);transition:transform .34s cubic-bezier(.2,.9,.2,1);opacity:0}
-#info.show{transform:translateY(0);opacity:1}
-#info .close{position:absolute;top:12px;right:14px;color:var(--muted);font-size:22px;width:30px;height:30px;
-  display:grid;place-items:center;border-radius:50%;background:rgba(184,146,255,.10)}
-#info .title{font-size:20px;font-weight:800;padding-right:30px;letter-spacing:-.3px}
-#info .tag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;
-  padding:4px 9px;border-radius:8px;margin-top:8px;color:#1a0730}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:11px 18px;margin-top:15px}
-.kv .k{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
-.kv .v{font-weight:600;font-variant-numeric:tabular-nums;font-size:13.5px}
-.pass{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
-.pass .v{color:var(--good);font-weight:700}
-#info .more{margin-top:12px;font-size:12.5px;color:var(--violet);text-decoration:none;display:inline-block;font-weight:600}
+/* ---------- surfaces -------------------------------------------------------- */
 
-/* ---------- settings / pro sheet ---------- */
-#sheet{left:14px;right:14px;bottom:14px;max-width:460px;margin:0 auto;padding:22px;
-  transform:translateY(170%);transition:transform .34s cubic-bezier(.2,.9,.2,1);z-index:30}
-#sheet.show{transform:translateY(0)}
-#sheet h2{margin:0 0 4px;font-size:20px;letter-spacing:-.3px}
-#sheet p{color:var(--muted);font-size:13.5px;line-height:1.55;margin:10px 0}
-#sheet .row{display:flex;gap:11px;margin-top:16px}
-#sheet .row .btn{flex:1;text-align:center;padding:13px}
-/* Updates, inside the sheet. A rule above it rather than a card of its own:
-   the sheet is already a panel, and a panel inside a panel in glass reads as
-   a mistake. */
-#upd{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
-#upd .updhead{display:flex;align-items:center;gap:10px}
-#upd .updver{flex:1;font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums}
-#upd .updmsg{font-size:12.5px;line-height:1.5;color:var(--muted);margin-top:8px}
-#upd .updmsg:empty{display:none}
-#upd .updmsg.new{color:var(--accent);font-weight:600}
-#upd .updmsg.bad{color:#ff9b9b}
+.panel {
+  position: fixed; z-index: 15;
+  background: var(--surface), var(--bg);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-out);
+}
+.well {
+  background: var(--bg);
+  border-radius: var(--r-md);
+  box-shadow: var(--sh-in-sm);
+}
+
+/* ---------- buttons: the shared motion ------------------------------------- */
+/* rest: small raised · hover: lift 2px, bigger shadow · press: pushed in.
+   Hover only where there IS hover: on a phone a tapped button would otherwise
+   stay lifted until the next tap somewhere else. */
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  color: var(--text); font-size: 13px; font-weight: 650;
+  background: var(--bg);
+  border-radius: var(--r-md);
+  padding: 11px 16px;
+  box-shadow: var(--sh-out-sm);
+  transition: box-shadow var(--t), transform var(--t), color var(--t);
+}
+@media (hover: hover) {
+  .btn:hover { transform: translateY(-2px); box-shadow: var(--sh-out); }
+}
+.btn:active { transform: translateY(0); box-shadow: var(--sh-in-sm); }
+
+/* Toggle buttons stay pressed in while their thing is on, like every other
+   n3d toggle (the store's .opt, NetLab's .btn-icon.on). */
+.btn.on, .btn.on:hover { transform: none; color: var(--accent); box-shadow: var(--sh-in-sm); }
+
+/* The primary action is the one filled button: white on the violet half of
+   the ramp clears 5:1 in both themes. */
+.btn.primary {
+  color: var(--accent-ink);
+  background: linear-gradient(135deg, var(--accent-grad-a), var(--accent-grad-b));
+}
+
+.iconbtn { width: 44px; height: 44px; padding: 0; border-radius: var(--r-md); color: var(--text-dim); }
+.iconbtn .ico { width: 21px; height: 21px; }
+.iconbtn.on .ico { color: var(--accent); }
+/* The dish inks nearly all of its box and the bars only two thirds of
+   theirs, so the two are sized apart to read as one size (see the sprite). */
+.iconbtn .ico.i-dish { width: 20px; height: 20px; }
+.iconbtn .ico.i-signal { width: 23px; height: 23px; }
+
+.roundbtn {
+  width: 34px; height: 34px; border-radius: 50%; padding: 0; flex: none;
+  color: var(--text-dim);
+}
+.roundbtn .ico { width: 15px; height: 15px; stroke-width: 2.4; }
+
+/* ---------- top bar ---------------------------------------------------------- */
+
+#topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+  display: flex; align-items: center; gap: 12px;
+  padding: calc(env(safe-area-inset-top) + 14px) 16px 12px;
+  pointer-events: none;
+}
+#topbar > * { pointer-events: auto; }
+.brand {
+  display: inline-flex; align-items: center; gap: 9px;
+  height: 44px; padding: 0 16px 0 12px;
+  background: var(--surface), var(--bg);
+  border-radius: var(--r-pill);
+  box-shadow: var(--sh-out-sm);
+  font-weight: 800; font-size: 14px; letter-spacing: 3px; color: var(--text);
+}
+.brand .ico { width: 22px; height: 22px; color: var(--accent); stroke-width: 1.8; }
+.brand .dot { color: var(--accent); }
+.spacer { flex: 1; }
+
+/* ---------- live dot (the one pulse the UI keeps) ---------------------------- */
+
+.livedot {
+  width: 8px; height: 8px; border-radius: 50%; flex: none;
+  background: var(--good);
+  animation: live 1.6s ease-in-out infinite;
+}
+@keyframes live { 50% { opacity: .35; } }
+
+/* ---------- GNSS "your phone" panel ----------------------------------------- */
+
+#gnss {
+  left: 16px; top: calc(env(safe-area-inset-top) + 76px);
+  width: 196px; padding: 14px 15px 13px;
+}
+#gnss.hidden { display: none; }
+#gnss h3 {
+  margin: 0 0 6px; font-size: 10px; font-weight: 750; letter-spacing: 1.3px;
+  color: var(--text-dim); text-transform: uppercase;
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+}
+#gnss .big { font-size: 30px; font-weight: 800; line-height: 1.05; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+#gnss .big small { font-size: 11.5px; color: var(--text-dim); font-weight: 550; letter-spacing: 0; }
+#gnss .status { font-size: 11px; color: var(--warn); margin-top: 4px; font-weight: 600; }
+#consts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+#consts:empty { display: none; }
+.cst {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 9.5px; font-weight: 700; letter-spacing: .3px; color: var(--text-dim);
+  padding: 3px 8px; border-radius: var(--r-pill);
+  background: var(--bg); box-shadow: var(--sh-in-sm);
+}
+.cst::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--c); }
+.cst b { color: var(--text); }
+/* The skyplot sits in a round well: it is a view down into the sky dome. */
+.skywell {
+  width: 158px; height: 158px; margin: 12px auto 4px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--bg); box-shadow: var(--sh-in);
+}
+#skyplot { width: 146px; height: 146px; }
+#gnss .next { margin-top: 8px; font-size: 11.5px; color: var(--text-dim); }
+#gnss .next b { color: var(--accent); font-variant-numeric: tabular-nums; font-weight: 700; }
+#gnss.collapsed .body { display: none; }
+#gnss.collapsed h3 { margin-bottom: 0; }
+
+/* ---------- category chips --------------------------------------------------- */
+/* A scroller clips box-shadows at its padding box, so the row carries enough
+   padding for the chips' own shadows to fit inside it. */
+
+#cats {
+  position: fixed; left: 0; right: 0; z-index: 15;
+  bottom: calc(env(safe-area-inset-bottom) + 6px);
+  display: flex; gap: 12px;
+  padding: 12px 16px 14px;
+  overflow-x: auto; scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 14px, #000 calc(100% - 14px), transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 14px, #000 calc(100% - 14px), transparent);
+}
+#cats::-webkit-scrollbar { display: none; }
+.chip {
+  flex: 0 0 auto; white-space: nowrap;
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 15px; border-radius: var(--r-pill);
+  font-size: 13px; font-weight: 650; color: var(--text-dim);
+  background: var(--bg);
+  box-shadow: var(--sh-out-sm);
+  transition: box-shadow var(--t), transform var(--t), color var(--t);
+}
+@media (hover: hover) { .chip:hover { transform: translateY(-2px); box-shadow: var(--sh-out); } }
+.chip:active { transform: translateY(0); box-shadow: var(--sh-in-sm); }
+.chip.on, .chip.on:hover { transform: none; color: var(--text); box-shadow: var(--sh-in-sm); }
+.chip .swatch {
+  width: 10px; height: 10px; border-radius: 50%; flex: none;
+  background: var(--c); opacity: .35; transition: opacity var(--t);
+}
+.chip.on .swatch { opacity: 1; }
+.chip.loading .swatch { animation: live 1s ease-in-out infinite; opacity: 1; }
+
+/* ---------- satellite info card --------------------------------------------- */
+
+#info {
+  left: 16px; right: 16px; max-width: 460px; margin: 0 auto;
+  bottom: calc(env(safe-area-inset-bottom) + 80px);
+  padding: 18px 18px 16px;
+  border-radius: var(--r-xl);
+  box-shadow: var(--sh-out-lg);
+  opacity: 0; pointer-events: none;
+  transform: translateY(calc(100% + 120px));
+  transition: transform .38s var(--ease-out), opacity .25s ease;
+}
+#info.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+#info .close { position: absolute; top: 14px; right: 14px; }
+#info .title { font-size: 19px; font-weight: 800; letter-spacing: -.3px; padding-right: 44px; line-height: 1.25; }
+#info .tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 10px; font-weight: 800; letter-spacing: .7px; text-transform: uppercase;
+  padding: 4px 10px; border-radius: var(--r-pill); margin-top: 8px;
+  color: var(--tag-ink); background: var(--c);
+}
+#info .tag.live::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; animation: live 1.6s ease-in-out infinite;
+}
+.grid {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px 16px;
+  margin-top: 14px; padding: 13px 15px;
+}
+.kv { min-width: 0; }
+.kv .k { color: var(--text-faint); font-size: 10px; font-weight: 650; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 2px; }
+.kv .v { font-weight: 650; font-variant-numeric: tabular-nums; font-size: 13.5px; overflow-wrap: anywhere; }
+.pass { margin-top: 13px; font-size: 13px; color: var(--text-dim); }
+.pass .v { color: var(--good); font-weight: 700; }
+#info .more { margin-top: 12px; padding: 9px 14px; font-size: 12.5px; color: var(--accent); }
+
+/* ---------- about sheet ------------------------------------------------------ */
+
+#sheet {
+  left: 16px; right: 16px; bottom: calc(env(safe-area-inset-bottom) + 16px);
+  max-width: 460px; margin: 0 auto; padding: 22px 20px 20px;
+  border-radius: var(--r-xl);
+  box-shadow: var(--sh-out-lg);
+  z-index: 30;
+  transform: translateY(calc(100% + 60px));
+  transition: transform .38s var(--ease-out);
+}
+#sheet.show { transform: translateY(0); }
+#sheet h2 { margin: 0 0 4px; font-size: 20px; letter-spacing: -.3px; display: flex; align-items: center; gap: 10px; }
+#sheet h2 .ico { width: 24px; height: 24px; color: var(--accent); stroke-width: 1.8; }
+#sheet p { color: var(--text-dim); font-size: 13.5px; line-height: 1.55; margin: 10px 0; }
+#sheet .credit { font-size: 11.5px; color: var(--text-faint); line-height: 1.6; margin-top: -2px; }
+#sheet .credit a { color: var(--accent); text-decoration: none; font-weight: 600; }
+#sheet .row { display: flex; gap: 12px; margin-top: 16px; }
+#sheet .row .btn { flex: 1; padding: 13px; }
+
+/* Updates: an inset well of its own inside the sheet, so it reads as a
+   separate instrument rather than more paragraph text. */
+#upd { margin-top: 16px; padding: 14px 15px 15px; }
+#upd .updhead { display: flex; align-items: center; gap: 10px; }
+#upd .updver { flex: 1; font-size: 12px; font-weight: 650; color: var(--text-faint); font-variant-numeric: tabular-nums; }
+#upd .updmsg { font-size: 12.5px; line-height: 1.5; color: var(--text-dim); margin-top: 9px; }
+#upd .updmsg:empty { display: none; }
+#upd .updmsg.new { color: var(--accent); font-weight: 650; }
+#upd .updmsg.bad { color: var(--bad); }
 /* The track only exists while something is downloading; an empty progress bar
-   sitting under a button is a promise the sheet has not made. */
-#upd .updbar{display:none;height:6px;margin-top:10px;border-radius:999px;
-  background:rgba(179,150,255,.16);overflow:hidden}
-#upd .updbar.show{display:block}
-#upd .updbar i{display:block;height:100%;width:0;border-radius:999px;
-  background:linear-gradient(90deg,var(--violet),var(--magenta));transition:width .18s linear}
+   under a button is a promise the sheet has not made. */
+#upd .updbar {
+  display: none; height: 8px; margin-top: 11px; border-radius: var(--r-pill);
+  background: var(--bg); box-shadow: var(--sh-in-sm); overflow: hidden;
+}
+#upd .updbar.show { display: block; }
+#upd .updbar i {
+  display: block; height: 100%; width: 0; border-radius: var(--r-pill);
+  background: linear-gradient(90deg, var(--accent-grad-a), var(--accent-grad-b));
+  transition: width .18s linear;
+}
 /* Wraps, so a long primary label takes the whole row and the secondary drops
-   below it rather than both being squeezed into half-width pills that wrap
-   their text. Full-width stacked buttons are what the four Compose apps do
-   with the same two actions. */
-#upd .updrow{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
-#upd .updrow:empty{display:none}
-#upd .updrow .btn{flex:1 0 100%;text-align:center;padding:11px;font-size:12.5px}
-/* A checkbox styled as the same pill as everything else, because a bare
-   platform checkbox in a WebView is the one control that never matches. */
-#upd .updauto{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);
-  cursor:pointer;user-select:none}
-#upd .updauto input{position:absolute;opacity:0;width:0;height:0}
-#upd .updauto i{width:34px;height:19px;border-radius:999px;background:rgba(179,150,255,.16);
-  border:1px solid var(--line);position:relative;transition:background .2s,border-color .2s}
-#upd .updauto i::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;
-  border-radius:50%;background:var(--faint);transition:transform .2s,background .2s}
-#upd .updauto input:checked + i{background:rgba(184,146,255,.34);border-color:var(--line-strong)}
-#upd .updauto input:checked + i::after{transform:translateX(15px);background:var(--txt)}
+   below it rather than both being squeezed into half-width pills. */
+#upd .updrow { display: flex; flex-wrap: wrap; gap: 11px; margin-top: 13px; }
+#upd .updrow:empty { display: none; }
+#upd .updrow .btn { flex: 1 0 100%; padding: 11px; font-size: 12.5px; }
 
-.backdrop{position:fixed;inset:0;background:rgba(8,2,20,.6);z-index:25;opacity:0;pointer-events:none;
-  transition:opacity .3s;backdrop-filter:blur(3px)}
-.backdrop.show{opacity:1;pointer-events:auto}
+/* The switch: an inset track with a raised knob, the Android apps' NeuSwitch. */
+#upd .updauto {
+  display: flex; align-items: center; gap: 9px; font-size: 12px; font-weight: 600;
+  color: var(--text-dim); cursor: pointer; user-select: none;
+}
+#upd .updauto input { position: absolute; opacity: 0; width: 0; height: 0; }
+#upd .updauto i {
+  position: relative; width: 42px; height: 24px; border-radius: var(--r-pill);
+  background: var(--bg); box-shadow: var(--sh-in-sm);
+}
+#upd .updauto i::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px;
+  border-radius: 50%; background: var(--surface), var(--bg);
+  box-shadow: 2px 2px 4px var(--dark), -1px -1px 3px var(--light);
+  transition: transform var(--t), background var(--t);
+}
+#upd .updauto input:checked + i::after {
+  transform: translateX(18px);
+  background: linear-gradient(135deg, var(--accent-grad-a), var(--accent-grad-b));
+}
 
-/* ---------- loading / toast ---------- */
-#boot{position:fixed;inset:0;display:grid;place-items:center;z-index:40;
-  background:radial-gradient(120% 90% at 50% 35%,#1a0b38,#070312);transition:opacity .55s}
-#boot.hide{opacity:0;pointer-events:none}
-#boot .ring{width:56px;height:56px;border-radius:50%;border:3px solid var(--line-strong);
-  border-top-color:var(--magenta);animation:spin 1s linear infinite;margin:0 auto;
-  box-shadow:0 0 34px rgba(224,107,255,.3)}
-@keyframes spin{to{transform:rotate(360deg)}}
-#boot .t{margin-top:18px;color:var(--muted);font-size:13px;text-align:center;letter-spacing:.3px}
-/* ---------- live signal log ---------- */
-#log{top:0;right:0;bottom:0;width:min(372px,92vw);z-index:32;border-radius:0;
-  display:flex;flex-direction:column;transform:translateX(101%);
-  transition:transform .34s cubic-bezier(.2,.9,.2,1);border-left:1px solid var(--line-strong)}
-#log.show{transform:translateX(0)}
-.loghead{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top) + 16px) 16px 12px;border-bottom:1px solid var(--line)}
-.logtitle{font-weight:800;letter-spacing:1.5px;font-size:13px;display:flex;align-items:center;gap:8px}
-.logsub{color:var(--muted);font-size:11px;flex:1}
-.livedot{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 10px var(--good);animation:live 1.4s infinite}
-.logclose{color:var(--muted);font-size:22px;width:32px;height:32px;border-radius:50%;background:rgba(184,146,255,.10)}
-#logBody{flex:1;overflow-y:auto;padding:8px 14px 20px;font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11px;line-height:1.75}
-.logrow{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#cdd8f0;border-bottom:1px solid rgba(184,146,255,.06);padding:1px 0}
-.logrow .lt{color:var(--faint)}
-.logrow .lc{font-weight:700}
-.logrow b{color:#fff}
-.logfix{color:var(--good)} .logfix .lfix{font-weight:800}
-.logmuted{color:var(--muted);white-space:normal}
+.backdrop {
+  position: fixed; inset: 0; z-index: 25; background: var(--scrim);
+  opacity: 0; pointer-events: none; transition: opacity .3s ease;
+}
+.backdrop.show { opacity: 1; pointer-events: auto; }
 
-#toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 130px);transform:translateX(-50%);
-  background:var(--glass-solid);border:1px solid var(--line-strong);border-radius:12px;padding:10px 16px;font-size:12.5px;
-  z-index:35;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;box-shadow:var(--shadow)}
-#toast.show{opacity:1}
+/* ---------- boot ------------------------------------------------------------- */
+
+#boot {
+  position: fixed; inset: 0; z-index: 40; display: grid; place-items: center;
+  background: var(--bg); transition: opacity .55s ease;
+}
+#boot.hide { opacity: 0; pointer-events: none; }
+#boot .ring {
+  position: relative; width: 64px; height: 64px; margin: 0 auto; border-radius: 50%;
+  background: var(--bg); box-shadow: var(--sh-in);
+}
+#boot .ring::after {
+  content: ""; position: absolute; inset: 9px; border-radius: 50%;
+  border: 3px solid transparent; border-top-color: var(--accent);
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#boot .t { margin-top: 20px; color: var(--text-dim); font-size: 13px; text-align: center; letter-spacing: .3px; padding: 0 24px; }
+
+/* ---------- live signal log -------------------------------------------------- */
+
+#log {
+  top: 0; right: 0; bottom: 0; width: min(372px, 92vw); z-index: 32;
+  border-radius: var(--r-xl) 0 0 var(--r-xl);
+  box-shadow: var(--sh-out-lg);
+  display: flex; flex-direction: column;
+  transform: translateX(calc(100% + 40px));
+  transition: transform .38s var(--ease-out);
+}
+#log.show { transform: translateX(0); }
+.loghead {
+  display: flex; align-items: center; gap: 10px;
+  padding: calc(env(safe-area-inset-top) + 18px) 16px 12px 18px;
+}
+.logtitle { font-weight: 800; letter-spacing: 1.5px; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+.logsub { color: var(--text-dim); font-size: 11px; flex: 1; min-width: 0; }
+#logBody {
+  flex: 1; overflow-y: auto; margin: 4px 14px calc(env(safe-area-inset-bottom) + 16px);
+  padding: 10px 12px 14px;
+  font-family: var(--mono); font-size: 11px; line-height: 1.75;
+}
+.logrow {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  color: var(--text-dim); padding: 1px 0;
+}
+.logrow .lt { color: var(--text-faint); }
+.logrow .lc { font-weight: 700; }
+.logrow b { color: var(--text); }
+.logfix { color: var(--good); }
+.logfix .lfix { font-weight: 800; }
+.logmuted { color: var(--text-faint); white-space: normal; font-family: system-ui, sans-serif; }
+
+/* ---------- toast ------------------------------------------------------------ */
+
+#toast {
+  position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 136px);
+  transform: translate(-50%, 8px);
+  max-width: calc(100vw - 32px);
+  background: var(--surface), var(--bg); color: var(--text);
+  border-radius: var(--r-pill); padding: 11px 18px; font-size: 12.5px; font-weight: 600;
+  box-shadow: var(--sh-out);
+  z-index: 35; opacity: 0; pointer-events: none;
+  transition: opacity .25s ease, transform .3s var(--ease-out);
+  text-align: center;
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

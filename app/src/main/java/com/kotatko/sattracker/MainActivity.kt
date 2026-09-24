@@ -3,6 +3,7 @@ package com.kotatko.sattracker
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -10,6 +11,7 @@ import android.webkit.WebView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import com.kotatko.sattracker.databinding.ActivityMainBinding
 import com.kotatko.sattracker.update.Release
@@ -31,6 +33,7 @@ class MainActivity : AppCompatActivity(), WebAppInterface.Host {
     private val updates by lazy { UpdateManager(this) }
 
     private var webReady = false
+    private var darkNow = false
     private var lastLat: Double? = null
     private var lastLon: Double? = null
     private var lastAlt: Double = 0.0
@@ -48,6 +51,8 @@ class MainActivity : AppCompatActivity(), WebAppInterface.Host {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        darkNow = isDark(resources.configuration)
+        applySystemBars(darkNow)
 
         tleRepo = TleRepository(this)
         gnss = GnssTracker(this) { json ->
@@ -142,6 +147,46 @@ class MainActivity : AppCompatActivity(), WebAppInterface.Host {
 
     override fun log(msg: String) {
         Log.d("SatWeb", msg)
+    }
+
+    override fun themeName(): String = if (isDark(resources.configuration)) "dark" else "light"
+
+    // ---- theme ----------------------------------------------------------------
+    // The manifest handles uiMode itself, so flipping the phone's dark mode does
+    // not recreate the activity (which would reload the page and drop every
+    // loaded satellite); the page is told instead and repaints in place.
+
+    private fun isDark(config: Configuration) =
+        (config.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        val dark = isDark(newConfig)
+        if (dark == darkNow) return
+        darkNow = dark
+        applySystemBars(dark)
+        pushToJs("window.SatBridge && window.SatBridge.onTheme('${if (dark) "dark" else "light"}')")
+    }
+
+    /**
+     * Paint everything behind the page in the page's own surface colour, and
+     * give the status and navigation bars icons that read on it: light icons on
+     * the dark theme, dark ones on the light theme.
+     */
+    private fun applySystemBars(dark: Boolean) {
+        val bg = ContextCompat.getColor(this, R.color.bg)
+        @Suppress("DEPRECATION")
+        run {
+            // Ignored from Android 15, where the page itself draws behind the bars.
+            window.statusBarColor = bg
+            window.navigationBarColor = bg
+        }
+        binding.root.setBackgroundColor(bg)
+        binding.webView.setBackgroundColor(bg)
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = !dark
+            isAppearanceLightNavigationBars = !dark
+        }
     }
 
     // ---- updates ------------------------------------------------------------

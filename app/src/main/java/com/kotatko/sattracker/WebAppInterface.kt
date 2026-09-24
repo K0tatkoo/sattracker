@@ -13,6 +13,8 @@ class WebAppInterface(private val host: Host) {
         fun requestTle(group: String)
         fun openUrl(url: String)
         fun log(msg: String)
+        /** "dark" or "light": the phone's own setting, which the page follows. */
+        fun themeName(): String
 
         // ---- updates. See update/Updater.kt; the sheet in globe.html is the UI. ----
         fun updateCheck()
@@ -37,6 +39,14 @@ class WebAppInterface(private val host: Host) {
 
     @JavascriptInterface
     fun log(msg: String) = host.log(msg)
+
+    /**
+     * Read synchronously from the page's <head>, before first paint, so the
+     * very first frame is already in the right theme. Later changes arrive as
+     * SatBridge.onTheme().
+     */
+    @JavascriptInterface
+    fun theme(): String = host.themeName()
 
     /* ---- updates -----------------------------------------------------------
        The whole update cycle is driven from the About sheet. Every one of these
