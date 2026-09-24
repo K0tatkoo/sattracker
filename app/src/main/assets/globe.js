@@ -129,6 +129,11 @@ function initScene(){
   lamp = new THREE.DirectionalLight(0xffffff, 0.5);
   lamp.position.set(-2.2, 2.4, 1.2);
   camera.add(lamp);
+  // Its target has to ride along too: left at the world origin, the light's
+  // direction swings toward the view axis as you zoom out and the highlight
+  // slides off the top-left.
+  lamp.target.position.set(0, 0, -3);
+  camera.add(lamp.target);
 
   buildPlinth();
   buildEarth();
@@ -346,13 +351,15 @@ function solidDotTexture(){
 }
 
 let trailGeom, trailLines, trailPos, trailCol;
-const TRAIL_N = 40;   // samples per orbit arc
+const TRAIL_SEG = 128;   // one orbit, N=120 segments (updateSelectedTrail)
 
 function buildSatSystem(){
   // Orbit trail (drawn under the satellite dots). RGBA vertex colours: the fade
   // is carried in alpha, so it fades out on the light theme too instead of
   // fading to black the way a darkened colour would.
-  const maxSeg = MAX_SATS * TRAIL_N;
+  // Sized for the one trail that is ever drawn: r147 re-uploads the whole
+  // buffer on every needsUpdate, and this used to be sized for 4,000 trails.
+  const maxSeg = TRAIL_SEG;
   trailGeom = new THREE.BufferGeometry();
   trailPos = new THREE.BufferAttribute(new Float32Array(maxSeg*2*3),3).setUsage(THREE.DynamicDrawUsage);
   trailCol = new THREE.BufferAttribute(new Float32Array(maxSeg*2*4),4).setUsage(THREE.DynamicDrawUsage);
@@ -583,6 +590,7 @@ function ingestTle(group, text){
   state.loadingGroups.delete(group);
   const cat=CATEGORIES.find(c=>c.group===group); if(!cat) return;
   cat.el && cat.el.classList.remove('loading');
+  if (!cat.on) return;                                  // switched off while it was downloading
   state.sats=state.sats.filter(s=>s.cat.id!==cat.id);   // replace this group
   const lines=(text||'').split(/\r?\n/); let added=0;
   for (let i=0;i+2<lines.length && added<cat.cap;i+=3){
@@ -667,7 +675,7 @@ function onPointerUp(e){
   const moved=Math.hypot(e.clientX-d.x, e.clientY-d.y), dt=performance.now()-d.t;
   if (moved>10 || dt>400) return;          // it was a drag, not a tap
   const hit=pickAt(e.clientX, e.clientY);
-  if (!hit) return;
+  if (!hit){ closeInfo(); return; }                    // a tap on nothing puts the card away
   if (hit.beam) showGnssSat(hit.beam.sat, hit.beam.cat);
   else selectSat(hit.sat);
 }
@@ -770,7 +778,8 @@ function showGnssSat(sd, cat){
   showMore(cat ? cat.norad : 0);
   $('#info').classList.add('show');
 }
-$('#infoClose').onclick=()=>{ $('#info').classList.remove('show'); state.selected=-1; selRing.visible=false; };
+function closeInfo(){ $('#info').classList.remove('show'); state.selected=-1; selRing.visible=false; }
+$('#infoClose').onclick=closeInfo;
 
 // ============================================================================
 //  GNSS panel (real "satellite in use" data from the phone)
@@ -792,7 +801,7 @@ function renderGnss(){
   Object.keys(counts).sort().forEach(k=>{
     const el=document.createElement('span'); el.className='cst';
     el.style.setProperty('--c',`var(--c-${constKey(k)})`);
-    el.innerHTML=`<span>${k}</span><span><b>${counts[k].u}</b>/${counts[k].t}</span>`;
+    el.innerHTML=`${k} <b>${counts[k].u}</b>/${counts[k].t}`;
     box.appendChild(el);
   });
 }
@@ -1085,8 +1094,9 @@ function updateSelectedTrail(now){
 // the line of sight, which is only right for a GPS satellite straight overhead; anywhere lower
 // it landed short of the dot, and since the glow was also the hit area, tapping the dot missed.
 // Now each signal is matched to the catalogue satellite sending it — by the PRN in its Celestrak
-// name (GPS "(PRN 22)", Galileo "(PRN E11)", BeiDou "(C19)"), else by which catalogue satellite
-// sits in that exact direction (GLONASS names carry no PRN) — and the glow follows that dot
+// name where it has one (GPS "(PRN 22)", BeiDou "(C19)"), else by which catalogue satellite sits
+// in that exact direction (GLONASS "COSMOS 2433 (720)" and Galileo "GSAT0101 (GALILEO-PFM)"
+// carry no PRN) — and the glow follows that dot
 // every frame. With no catalogue satellite to match (QZSS, SBAS, NavIC, or the category's TLEs
 // not loaded), it goes where the line of sight actually meets that constellation's orbit.
 let commLines, commPos, commCol, commPulse, commPulsePos, commPulseCol,
@@ -1133,8 +1143,7 @@ function shellKm(sd){
 function prnOf(s){
   if (s._prn!==undefined) return s._prn;
   const m=/\(PRN\s*[A-Z]?0*(\d+)\)/i.exec(s.name)
-       || (s.cat.id==='beidou' && /\(C0*(\d+)\)/.exec(s.name))
-       || (s.cat.id==='galileo' && /\(E0*(\d+)\)/.exec(s.name));
+       || (s.cat.id==='beidou' && /\(C0*(\d+)\)/.exec(s.name));
   return (s._prn = m ? parseInt(m[1],10) : null);
 }
 // Angle (deg) between the unit vector `dir` and the direction from `from` to `to`.
@@ -1170,10 +1179,20 @@ function rebuildBeams(){
   const obsPos=llToVec3(o.lat,o.lon,SCENE_R*1.003);                 // start AT the "you are here" dot
   const obsGeo=llToVec3(o.lat,o.lon,SCENE_R*(1+(o.alt||0)/1000/EARTH_R_KM));   // the phone itself
   const taken=new Set();
+  // A dual-frequency phone lists each satellite once per signal (L1 and L5,
+  // E1 and E5a…), same svid and same direction. One satellite is one beam;
+  // the card shows its stronger signal.
+  const beamOf=new Map();
   for(const s of g.sats){
-    if(commBeams.length>=MAX_BEAMS) break;
     if(!s.usedInFix || s.elevation==null || s.elevation<0 || s.azimuth==null) continue;
     if(!beamConstEnabled(s.constellation)) continue;                // respect category toggles
+    const key=s.constellation+':'+s.svid;
+    if (beamOf.has(key)){
+      const bm=commBeams[beamOf.get(key)];
+      if ((s.cn0||0)>(bm.sat.cn0||0)) bm.sat=s;
+      continue;
+    }
+    if(commBeams.length>=MAX_BEAMS) break;
     const az=s.azimuth*DEG, el=s.elevation*DEG;
     const dir=new THREE.Vector3()
       .addScaledVector(east, Math.cos(el)*Math.sin(az))
@@ -1189,6 +1208,7 @@ function rebuildBeams(){
     }
     const cc=new THREE.Color(cssVar('--c-'+constKey(s.constellation)) || '#39E3FF');
     commBeams.push({ a:obsPos.clone(), b:far, c:[cc.r,cc.g,cc.b], sat:s, cat });
+    beamOf.set(key, commBeams.length-1);
   }
   writeBeams();
   commLines.geometry.setDrawRange(0,commBeams.length*2);
@@ -1281,6 +1301,9 @@ function animate(now){
 function boot(){
   if (!sat){ document.querySelector('#boot .t').textContent='Failed to load orbit engine (offline?)'; return; }
   initScene();
+  // Read the phone's theme again: a switch while the libraries were loading
+  // was pushed before SatBridge existed, and would otherwise be lost.
+  try { if (window.Android && Android.theme){ const t=String(Android.theme()); if (t==='dark'||t==='light') root.setAttribute('data-theme', t); } } catch(e){}
   applyTheme();
   // Localhost-only debug handle (harmless; never reachable from file:///android_asset in the app).
   if (location.hostname==='localhost'){

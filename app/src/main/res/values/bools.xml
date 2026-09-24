@@ -1,0 +1,5 @@
+<resources>
+    <!-- Dark bar icons on the light theme, light ones on the dark (values-night).
+         In the theme so the launch window is right before any code runs. -->
+    <bool name="light_bars">true</bool>
+</resources>

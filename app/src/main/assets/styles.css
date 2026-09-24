@@ -160,7 +160,8 @@ html, body {
 }
 button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; padding: 0; }
 canvas { display: block; }
-#scene { position: fixed; inset: 0; touch-action: none; }
+/* inset: is Chrome 87+; the longhands are spelled out wherever it would be used. */
+#scene { position: fixed; top: 0; right: 0; bottom: 0; left: 0; touch-action: none; }
 
 /* Icons: one sprite, drawn in currentColor so every glyph follows the theme.
    Hidden by zero size, never display:none (a gradient inside a display:none
@@ -216,7 +217,7 @@ canvas { display: block; }
   background: linear-gradient(135deg, var(--accent-grad-a), var(--accent-grad-b));
 }
 
-.iconbtn { width: 44px; height: 44px; padding: 0; border-radius: var(--r-md); color: var(--text-dim); }
+.iconbtn { width: 44px; height: 44px; padding: 0; flex: none; border-radius: var(--r-md); color: var(--text-dim); }
 .iconbtn .ico { width: 21px; height: 21px; }
 .iconbtn.on .ico { color: var(--accent); }
 /* The dish inks nearly all of its box and the bars only two thirds of
@@ -235,19 +236,22 @@ canvas { display: block; }
 #topbar {
   position: fixed; top: 0; left: 0; right: 0; z-index: 20;
   display: flex; align-items: center; gap: 12px;
+  /* Every env() line has a plain line before it: a WebView older than
+     Chrome 69 drops a declaration it cannot parse, whole. */
+  padding: 14px 16px 12px;
   padding: calc(env(safe-area-inset-top) + 14px) 16px 12px;
   pointer-events: none;
 }
 #topbar > * { pointer-events: auto; }
 .brand {
-  display: inline-flex; align-items: center; gap: 9px;
+  display: inline-flex; align-items: center;
   height: 44px; padding: 0 16px 0 12px;
   background: var(--surface), var(--bg);
   border-radius: var(--r-pill);
   box-shadow: var(--sh-out-sm);
   font-weight: 800; font-size: 14px; letter-spacing: 3px; color: var(--text);
 }
-.brand .ico { width: 22px; height: 22px; color: var(--accent); stroke-width: 1.8; }
+.brand .ico { width: 22px; height: 22px; margin-right: 9px; color: var(--accent); stroke-width: 1.8; }
 .brand .dot { color: var(--accent); }
 .spacer { flex: 1; }
 
@@ -263,7 +267,7 @@ canvas { display: block; }
 /* ---------- GNSS "your phone" panel ----------------------------------------- */
 
 #gnss {
-  left: 16px; top: calc(env(safe-area-inset-top) + 76px);
+  left: 16px; top: 76px; top: calc(env(safe-area-inset-top) + 76px);
   width: 196px; padding: 14px 15px 13px;
 }
 #gnss.hidden { display: none; }
@@ -278,12 +282,14 @@ canvas { display: block; }
 #consts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 #consts:empty { display: none; }
 .cst {
-  display: inline-flex; align-items: center; gap: 5px;
+  /* inline-block, not flex: in a flex box the space between the name and the
+     count is trimmed away, and flex gap to replace it is Chrome 84+. */
+  display: inline-block; line-height: 1.5;
   font-size: 9.5px; font-weight: 700; letter-spacing: .3px; color: var(--text-dim);
   padding: 3px 8px; border-radius: var(--r-pill);
   background: var(--bg); box-shadow: var(--sh-in-sm);
 }
-.cst::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--c); }
+.cst::before { content: ""; display: inline-block; vertical-align: middle; width: 6px; height: 6px; margin: -2px 5px 0 0; border-radius: 50%; background: var(--c); }
 .cst b { color: var(--text); }
 /* The skyplot sits in a round well: it is a view down into the sky dome. */
 .skywell {
@@ -303,7 +309,7 @@ canvas { display: block; }
 
 #cats {
   position: fixed; left: 0; right: 0; z-index: 15;
-  bottom: calc(env(safe-area-inset-bottom) + 6px);
+  bottom: 6px; bottom: calc(env(safe-area-inset-bottom) + 6px);
   display: flex; gap: 12px;
   padding: 12px 16px 14px;
   overflow-x: auto; scrollbar-width: none;
@@ -334,25 +340,30 @@ canvas { display: block; }
 
 #info {
   left: 16px; right: 16px; max-width: 460px; margin: 0 auto;
-  bottom: calc(env(safe-area-inset-bottom) + 80px);
+  bottom: 80px; bottom: calc(env(safe-area-inset-bottom) + 80px);
   padding: 18px 18px 16px;
   border-radius: var(--r-xl);
   box-shadow: var(--sh-out-lg);
-  opacity: 0; pointer-events: none;
+  opacity: 0; pointer-events: none; visibility: hidden;
   transform: translateY(calc(100% + 120px));
-  transition: transform .38s var(--ease-out), opacity .25s ease;
+  /* visibility waits for the slide-out, then takes the card out of reach of
+     touch AND of TalkBack: a transform alone leaves it focusable. */
+  transition: transform .38s var(--ease-out), opacity .25s ease, visibility 0s linear .38s;
+  max-height: calc(100vh - 156px);
+  max-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 156px);
+  overflow-y: auto; overscroll-behavior: contain;
 }
-#info.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+#info.show { transform: translateY(0); opacity: 1; pointer-events: auto; visibility: visible; transition-delay: 0s; }
 #info .close { position: absolute; top: 14px; right: 14px; }
 #info .title { font-size: 19px; font-weight: 800; letter-spacing: -.3px; padding-right: 44px; line-height: 1.25; }
 #info .tag {
-  display: inline-flex; align-items: center; gap: 6px;
+  display: inline-flex; align-items: center;
   font-size: 10px; font-weight: 800; letter-spacing: .7px; text-transform: uppercase;
   padding: 4px 10px; border-radius: var(--r-pill); margin-top: 8px;
   color: var(--tag-ink); background: var(--c);
 }
 #info .tag.live::before {
-  content: ""; width: 6px; height: 6px; border-radius: 50%;
+  content: ""; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%;
   background: currentColor; animation: live 1.6s ease-in-out infinite;
 }
 .grid {
@@ -361,7 +372,7 @@ canvas { display: block; }
 }
 .kv { min-width: 0; }
 .kv .k { color: var(--text-faint); font-size: 10px; font-weight: 650; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 2px; }
-.kv .v { font-weight: 650; font-variant-numeric: tabular-nums; font-size: 13.5px; overflow-wrap: anywhere; }
+.kv .v { font-weight: 650; font-variant-numeric: tabular-nums; font-size: 13.5px; overflow-wrap: break-word; }
 .pass { margin-top: 13px; font-size: 13px; color: var(--text-dim); }
 .pass .v { color: var(--good); font-weight: 700; }
 #info .more { margin-top: 12px; padding: 9px 14px; font-size: 12.5px; color: var(--accent); }
@@ -369,17 +380,20 @@ canvas { display: block; }
 /* ---------- about sheet ------------------------------------------------------ */
 
 #sheet {
-  left: 16px; right: 16px; bottom: calc(env(safe-area-inset-bottom) + 16px);
+  left: 16px; right: 16px; bottom: 16px; bottom: calc(env(safe-area-inset-bottom) + 16px);
   max-width: 460px; margin: 0 auto; padding: 22px 20px 20px;
   border-radius: var(--r-xl);
   box-shadow: var(--sh-out-lg);
   z-index: 30;
-  transform: translateY(calc(100% + 60px));
-  transition: transform .38s var(--ease-out);
+  transform: translateY(calc(100% + 60px)); visibility: hidden;
+  transition: transform .38s var(--ease-out), visibility 0s linear .38s;
+  max-height: calc(100vh - 88px);
+  max-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 88px);
+  overflow-y: auto; overscroll-behavior: contain;
 }
-#sheet.show { transform: translateY(0); }
-#sheet h2 { margin: 0 0 4px; font-size: 20px; letter-spacing: -.3px; display: flex; align-items: center; gap: 10px; }
-#sheet h2 .ico { width: 24px; height: 24px; color: var(--accent); stroke-width: 1.8; }
+#sheet.show { transform: translateY(0); visibility: visible; transition-delay: 0s; }
+#sheet h2 { margin: 0 0 4px; font-size: 20px; letter-spacing: -.3px; display: flex; align-items: center; }
+#sheet h2 .ico { width: 24px; height: 24px; margin-right: 10px; color: var(--accent); stroke-width: 1.8; }
 #sheet p { color: var(--text-dim); font-size: 13.5px; line-height: 1.55; margin: 10px 0; }
 #sheet .credit { font-size: 11.5px; color: var(--text-faint); line-height: 1.6; margin-top: -2px; }
 #sheet .credit a { color: var(--accent); text-decoration: none; font-weight: 600; }
@@ -435,7 +449,7 @@ canvas { display: block; }
 }
 
 .backdrop {
-  position: fixed; inset: 0; z-index: 25; background: var(--scrim);
+  position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 25; background: var(--scrim);
   opacity: 0; pointer-events: none; transition: opacity .3s ease;
 }
 .backdrop.show { opacity: 1; pointer-events: auto; }
@@ -443,7 +457,7 @@ canvas { display: block; }
 /* ---------- boot ------------------------------------------------------------- */
 
 #boot {
-  position: fixed; inset: 0; z-index: 40; display: grid; place-items: center;
+  position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 40; display: grid; place-items: center;
   background: var(--bg); transition: opacity .55s ease;
 }
 #boot.hide { opacity: 0; pointer-events: none; }
@@ -452,7 +466,7 @@ canvas { display: block; }
   background: var(--bg); box-shadow: var(--sh-in);
 }
 #boot .ring::after {
-  content: ""; position: absolute; inset: 9px; border-radius: 50%;
+  content: ""; position: absolute; top: 9px; right: 9px; bottom: 9px; left: 9px; border-radius: 50%;
   border: 3px solid transparent; border-top-color: var(--accent);
   animation: spin 1s linear infinite;
 }
@@ -466,18 +480,19 @@ canvas { display: block; }
   border-radius: var(--r-xl) 0 0 var(--r-xl);
   box-shadow: var(--sh-out-lg);
   display: flex; flex-direction: column;
-  transform: translateX(calc(100% + 40px));
-  transition: transform .38s var(--ease-out);
+  transform: translateX(calc(100% + 40px)); visibility: hidden;
+  transition: transform .38s var(--ease-out), visibility 0s linear .38s;
 }
-#log.show { transform: translateX(0); }
+#log.show { transform: translateX(0); visibility: visible; transition-delay: 0s; }
 .loghead {
   display: flex; align-items: center; gap: 10px;
+  padding: 18px 16px 12px 18px;
   padding: calc(env(safe-area-inset-top) + 18px) 16px 12px 18px;
 }
 .logtitle { font-weight: 800; letter-spacing: 1.5px; font-size: 13px; display: flex; align-items: center; gap: 8px; }
 .logsub { color: var(--text-dim); font-size: 11px; flex: 1; min-width: 0; }
 #logBody {
-  flex: 1; overflow-y: auto; margin: 4px 14px calc(env(safe-area-inset-bottom) + 16px);
+  flex: 1; overflow-y: auto; margin: 4px 14px 16px; margin: 4px 14px calc(env(safe-area-inset-bottom) + 16px);
   padding: 10px 12px 14px;
   font-family: var(--mono); font-size: 11px; line-height: 1.75;
 }
@@ -495,17 +510,42 @@ canvas { display: block; }
 /* ---------- toast ------------------------------------------------------------ */
 
 #toast {
-  position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 136px);
+  position: fixed; left: 50%; bottom: 136px; bottom: calc(env(safe-area-inset-bottom) + 136px);
   transform: translate(-50%, 8px);
-  max-width: calc(100vw - 32px);
+  /* max-content: a fixed box at left:50% would otherwise shrink-wrap to half
+     the screen and wrap a one-line message into three. */
+  width: max-content; max-width: calc(100vw - 32px);
   background: var(--surface), var(--bg); color: var(--text);
-  border-radius: var(--r-pill); padding: 11px 18px; font-size: 12.5px; font-weight: 600;
+  border-radius: var(--r-lg); padding: 11px 18px; font-size: 12.5px; font-weight: 600;
   box-shadow: var(--sh-out);
   z-index: 35; opacity: 0; pointer-events: none;
   transition: opacity .25s ease, transform .3s var(--ease-out);
   text-align: center;
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- small and short screens ------------------------------------------ */
+
+/* "Large" display size gives ~320 px: the top bar fits without squeezing. */
+@media (max-width: 340px) {
+  #topbar { gap: 8px; padding-left: 12px; padding-right: 12px; }
+  .brand { padding: 0 12px 0 10px; letter-spacing: 2px; }
+}
+/* Landscape. The panels keep their full content and scroll inside
+   themselves rather than running off the top or under the chips. */
+@media (max-height: 520px) {
+  #gnss {
+    max-height: calc(100vh - 156px);
+    max-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 156px);
+    overflow-y: auto; overscroll-behavior: contain;
+  }
+  #info {
+    left: auto; right: 16px; width: min(460px, 58vw);
+    max-height: calc(100vh - 150px);
+    max-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 150px);
+  }
+  #info .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 12px; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }

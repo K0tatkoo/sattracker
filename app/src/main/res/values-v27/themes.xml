@@ -1,0 +1,6 @@
+<resources>
+    <!-- windowLightNavigationBar exists from API 27. -->
+    <style name="Theme.SatelliteTracker" parent="Base.Theme.SatelliteTracker">
+        <item name="android:windowLightNavigationBar">@bool/light_bars</item>
+    </style>
+</resources>

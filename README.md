@@ -9,10 +9,14 @@ countdowns** for your location. Free, no ads, no in-app purchases, no accounts.
   on-device with SGP4 ([satellite.js](https://github.com/shashwatak/satellite-js)).
 - **"Your phone is using"** — Android `GnssStatus` API, shown as a live sky-plot + count.
 - **Tap a satellite** — country, operator, purpose, NORAD id, altitude, speed, sub-point,
-  look-angle from you, and next pass.
+  look-angle from you, and next pass. Taps go to whichever dot is nearest your finger, at any
+  zoom; a satellite your phone is receiving is shown under its real name, glowing on its own dot.
+- **The n3d look** — the same neumorphic light/dark design as the other n3d apps and sites,
+  following the phone's dark-mode setting live.
 - **Categories** — toggle GPS, GLONASS, Galileo, BeiDou, ISS/Stations, Starlink, Weather, Science.
-- **No ads, no tracking** — the only network requests it ever makes are to Celestrak for
-  orbital data. Your location is used on-device and never transmitted.
+- **No ads, no tracking** — the only servers it ever talks to are Celestrak, for orbital data,
+  and n3d-store.com, to check for a new version. Your location is used on-device and never
+  transmitted.
 
 ---
 
