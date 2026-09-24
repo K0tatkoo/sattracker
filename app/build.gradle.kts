@@ -26,8 +26,8 @@ android {
         targetSdk = 35
         // 3 / 1.2.0: in-app updates, from the About sheet. See the changelog
         // in README.md; 1.1.0 was the release that took the ads out.
-        versionCode = 3
-        versionName = "1.2.0"
+        versionCode = 4
+        versionName = "2.0.0"
     }
 
     signingConfigs {
