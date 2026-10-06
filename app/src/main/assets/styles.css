@@ -36,8 +36,11 @@
   --text-faint: #737b8c;
   --accent: #9b7cff;
   --accent-2: #34e3ff;
-  --accent-grad-a: #6a45ff;
-  --accent-grad-b: #9a6bff;
+  /* Filled controls (the primary button, the update bar, a switch that is on)
+     are ONE flat violet, never a gradient, as on the n3d sites since
+     2026-09-28 (owner): the deep end of the old violet ramp. White on it
+     clears 5.4:1 here and 7.2:1 in light. */
+  --accent-fill: #6a45ff;
   --accent-ink: #ffffff;
   --good: #4ade80;
   --warn: #f5c451;
@@ -111,8 +114,7 @@
   --text-faint: #7b8394;
   --accent: #5f43e8;
   --accent-2: #0a9fbd;
-  --accent-grad-a: #5734db;
-  --accent-grad-b: #7d54ef;
+  --accent-fill: #5734db;
   --good: #17914d;
   --warn: #a06f04;
   --bad: #cf3535;
@@ -140,7 +142,7 @@
     color-scheme: light;
     --bg: #e7eaf1; --bg-deep: #dde1ea; --dark: #c1c6d1; --light: #ffffff;
     --text: #1c2029; --text-dim: #545c6c; --text-faint: #7b8394;
-    --accent: #5f43e8; --accent-2: #0a9fbd; --accent-grad-a: #5734db; --accent-grad-b: #7d54ef;
+    --accent: #5f43e8; --accent-2: #0a9fbd; --accent-fill: #5734db;
     --good: #17914d; --warn: #a06f04; --bad: #cf3535; --scrim: rgba(60, 66, 82, .28);
     --surface-hi: #eaecf3; --surface-lo: #e2e6ed;
     --c-stations: #2a2f3a; --c-gps: #0a93b8; --c-glonass: #d23f3f; --c-galileo: #13935a;
@@ -210,11 +212,11 @@ canvas { display: block; }
    n3d toggle (the store's .opt, NetLab's .btn-icon.on). */
 .btn.on, .btn.on:hover { transform: none; color: var(--accent); box-shadow: var(--sh-in-sm); }
 
-/* The primary action is the one filled button: white on the violet half of
-   the ramp clears 5:1 in both themes. */
+/* The primary action is the one filled button: one flat violet, white on it
+   clearing 5:1 in both themes. */
 .btn.primary {
   color: var(--accent-ink);
-  background: linear-gradient(135deg, var(--accent-grad-a), var(--accent-grad-b));
+  background: var(--accent-fill);
 }
 
 .iconbtn { width: 44px; height: 44px; padding: 0; flex: none; border-radius: var(--r-md); color: var(--text-dim); }
@@ -418,7 +420,7 @@ canvas { display: block; }
 #upd .updbar.show { display: block; }
 #upd .updbar i {
   display: block; height: 100%; width: 0; border-radius: var(--r-pill);
-  background: linear-gradient(90deg, var(--accent-grad-a), var(--accent-grad-b));
+  background: var(--accent-fill);
   transition: width .18s linear;
 }
 /* Wraps, so a long primary label takes the whole row and the secondary drops
@@ -445,7 +447,7 @@ canvas { display: block; }
 }
 #upd .updauto input:checked + i::after {
   transform: translateX(18px);
-  background: linear-gradient(135deg, var(--accent-grad-a), var(--accent-grad-b));
+  background: var(--accent-fill);
 }
 
 .backdrop {
