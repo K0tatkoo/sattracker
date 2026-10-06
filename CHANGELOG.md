@@ -5,6 +5,12 @@ when something people rely on changes or goes away, MINOR for something new,
 PATCH for a fix — and each is a git tag (`vX.Y.Z`) on the commit that
 shipped. `tools/release` in Claudes Projects writes these entries.
 
+## 2.0.2 — 2026-10-06
+
+Buttons, the update bar and switches are one flat violet, matching the n3d sites
+
+- Filled controls: one flat violet, no gradient
+
 ## 2.0.1 — 2026-09-24
 
 A thin, calm ring marks the satellite you tapped, instead of the thick violet band
