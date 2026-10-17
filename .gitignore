@@ -9,3 +9,8 @@ captures/
 .cxx/
 *.keystore
 *.jks
+
+# iOS
+ios/build/
+xcuserdata/
+*.xcuserstate

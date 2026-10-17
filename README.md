@@ -1,4 +1,4 @@
-# Orbit — Live Satellite Tracker (Android)
+# Orbit — Live Satellite Tracker (Android & iPhone)
 
 A clean 3D globe showing **real satellites** orbiting Earth in real time, plus a live panel of
 the **GNSS satellites your phone is actually using** right now, and **next-pass / next-rise
@@ -146,6 +146,38 @@ MainActivity (Kotlin)
 - Starlink is capped (see `CATEGORIES[].cap` in `globe.js`) to keep the globe readable and fast.
 - Regular phones (incl. the S24) don't route calls/data through comms satellites, so only
   positioning (GNSS) satellites are genuinely "in use." Everything else is tracked/visualized.
+
+## 9. iPhone version (`ios/`)
+
+The same page in a Swift shell: `ios/Orbit` is the iPhone's `MainActivity`, and the Xcode
+project builds `app/src/main/assets` straight into the app, so both phones always show the
+same page. `Bridge.swift` defines `window.Android` with the Android method names, so
+`globe.js` doesn't know which phone it is on.
+
+```
+WKWebView (the same assets/)
+        ▲  window.SatBridge.*            window.Android.* (Bridge.swift) ▼
+GlobeViewController (Swift)
+ ├─ LocationProvider   → observer lat/lon (CoreLocation, while in use)
+ └─ TleRepository      → same fetch, 3 h cache and bundled fallback as the Kotlin one
+```
+
+Two things are missing because iOS gives them to no app. The page is told through
+`Android.capabilities()` and hides them:
+
+- **"Your phone is using" and the signal log.** iOS has no `GnssStatus` or raw measurements.
+- **Updating itself.** Only the App Store or TestFlight can replace an iPhone app.
+
+Build and run (needs Xcode, plus [XcodeGen](https://github.com/yonaskolb/XcodeGen) only when
+`project.yml` changes):
+
+```bash
+cd ios && xcodegen          # regenerate Orbit.xcodeproj after editing project.yml
+open Orbit.xcodeproj        # then pick an iPhone simulator and press ▶ Run
+```
+
+On a real iPhone, a free Apple ID works but the app stops opening after 7 days until it is run
+from Xcode again. The paid developer program removes that limit.
 
 ## License
 

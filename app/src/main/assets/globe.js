@@ -72,6 +72,17 @@ const state = {
 };
 
 // ============================================================================
+//  What the native shell can do
+// ============================================================================
+// The Android app can do everything and does not answer this. The iPhone
+// shell (ios/) says no to two things iOS never gives an app: the location
+// chip's list of satellites in use (and their raw signals), and replacing
+// itself, which only the App Store may do. A feature the phone cannot have is
+// hidden, rather than left waiting for data that will never come.
+const CAN = (()=>{ try { return JSON.parse(window.Android.capabilities()) || {}; } catch(e){ return {}; } })();
+const HAS_GNSS = CAN.gnss !== false, HAS_SELF_UPDATE = CAN.selfUpdate !== false;
+
+// ============================================================================
 //  Theme
 // ============================================================================
 // The page follows the phone's dark/light setting: native stamps data-theme
@@ -900,7 +911,7 @@ window.SatBridge = {
     rebuildBeams();
     lastRiseCalc=0;
   },
-  onPermission(granted){ if(!granted) toast('Location off — GNSS & passes disabled'); },
+  onPermission(granted){ if(!granted) toast(HAS_GNSS ? 'Location off — GNSS & passes disabled' : 'Location off — passes disabled'); },
   onUpdate(json){ try{ renderUpdate(JSON.parse(json)); }catch(e){} },
   // The phone switched between dark and light while the app was open.
   onTheme(mode){
@@ -1030,6 +1041,15 @@ $('#logToggle').onclick=()=>{
   setToggle($('#logToggle'), p.classList.contains('show'));
 };
 $('#logClose').onclick=()=>{ $('#log').classList.remove('show'); setToggle($('#logToggle'), false); };
+
+// Hidden, not removed: renderGnss and the next-rise ticker still write into
+// these elements every frame and must keep finding them.
+if (!HAS_GNSS){
+  for (const id of ['gnss','gnssToggle','log','logToggle']) $('#'+id).style.display='none';
+  $('#sheetBody').textContent='Real satellites in real time, propagated on your phone from '
+    +'Celestrak orbital elements. Free, no ads, no accounts, and your location never leaves the device.';
+}
+if (!HAS_SELF_UPDATE) $('#upd').style.display='none';
 
 let toastT;
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2600); }
