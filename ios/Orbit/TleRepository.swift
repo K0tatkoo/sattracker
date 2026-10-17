@@ -72,14 +72,17 @@ actor TleRepository {
         return Date().timeIntervalSince(modified)
     }
 
+    // Celestrak ends its lines with \r\n, and Swift counts "\r\n" as ONE
+    // Character, so splitting on "\n" finds no lines at all. isNewline matches it.
+
     private static func cap(_ text: String) -> String {
-        let lines = text.split(separator: "\n", omittingEmptySubsequences: false)
+        let lines = text.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline)
         return lines.count <= maxSats * 3 ? text : lines.prefix(maxSats * 3).joined(separator: "\n")
     }
 
     private static func looksLikeTle(_ text: String) -> Bool {
         var line1 = false, line2 = false
-        for line in text.split(separator: "\n") where line.count > 60 {
+        for line in text.split(whereSeparator: \.isNewline) where line.count > 60 {
             if line.hasPrefix("1 ") { line1 = true } else if line.hasPrefix("2 ") { line2 = true }
             if line1 && line2 { return true }
         }
