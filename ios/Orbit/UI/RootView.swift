@@ -39,7 +39,11 @@ struct RootView: View {
             case .about: AboutSheet()
             }
         }
-        .onChange(of: phase, initial: true) { _, now in model.setActive(now == .active) }
+        // Inactive is only a moment on the way to the background or back
+        // (or Control Center): acting on it planned the alerts twice a switch.
+        .onChange(of: phase, initial: true) { _, now in
+            if now != .inactive { model.setActive(now == .active) }
+        }
         .onOpenURL { model.open(url: $0) }
         .sensoryFeedback(.selection, trigger: model.selectedNorad)
         .task { model.start() }

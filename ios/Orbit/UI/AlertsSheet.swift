@@ -91,10 +91,10 @@ struct AlertsSheet: View {
     private func watchIss() {
         let iss = model.store.sat(norad: Catalog.issNorad)?.entry ?? SharedStore.iss?.entry
         if let iss {
-            Task { await model.alerts.toggle(iss) }
+            Task { await model.alerts.toggle(iss, categoryId: "stations") }
         } else {
             Task {
-                if let e = await model.tle.satellite(norad: Catalog.issNorad) { await model.alerts.toggle(e) }
+                if let e = await model.tle.satellite(norad: Catalog.issNorad) { await model.alerts.toggle(e, categoryId: "stations") }
             }
         }
     }

@@ -399,7 +399,8 @@ final class GlobeRenderer: NSObject, MTKViewDelegate {
             camera.autoRotate = false
             camera.goal = .init(position: goal, thenAutoRotate: true)
         case let .satellite(norad):
-            guard let sat = model.store.sat(norad: norad) else { return }
+            // Never worked out (decayed, say): its position is a placeholder.
+            guard let sat = model.store.sat(norad: norad), sat.alive else { return }
             camera.autoRotate = false
             camera.goal = .init(position: framing(sat.pos), thenAutoRotate: false)
         }
@@ -410,6 +411,7 @@ final class GlobeRenderer: NSObject, MTKViewDelegate {
     private func framing(_ p: SIMD3<Float>) -> SIMD3<Double> {
         let d = SIMD3<Double>(p)
         let r = length(d)
+        guard r > 1e-6, r.isFinite else { return camera.position }
         let dist = min(max(camera.radius, r * 1.8, r + 1.2), OrbitCamera.maxDistance)
         return normalize(d) * dist
     }

@@ -202,7 +202,7 @@ private struct HeaderButtons: View {
         GlassEffectContainer(spacing: 8) {
             HStack(spacing: 8) {
                 round(watched ? "Stop pass alerts" : "Alert me before it passes", watched ? "bell.fill" : "bell", on: watched) {
-                    Task { await model.alerts.toggle(sat.entry) }
+                    Task { await model.alerts.toggle(sat.entry, categoryId: sat.category.id) }
                 }
                 round(model.following ? "Stop following" : "Follow it", "scope", on: model.following) {
                     model.following.toggle()

@@ -14,6 +14,9 @@ final class PassAlerts: NSObject, UNUserNotificationCenterDelegate {
     struct Watched: Codable, Hashable, Identifiable {
         var entry: TleEntry
         var updated: Date
+        /// The category it was watched from, so a tapped alert opens it where
+        /// it lives (nil: it belongs to none, or it was watched before 2.0.0's fix).
+        var categoryId: String?
         var id: Int { entry.norad ?? 0 }
     }
 
@@ -41,9 +44,11 @@ final class PassAlerts: NSObject, UNUserNotificationCenterDelegate {
     private(set) var planned: [Planned] = []
 
     @ObservationIgnored var observer: () -> Geodetic? = { SharedStore.observer }
-    @ObservationIgnored var onOpen: ((Int, TleEntry?) -> Void)?
+    @ObservationIgnored var onOpen: ((Int, TleEntry?, String?) -> Void)?
     @ObservationIgnored private let tle: TleRepository
-    @ObservationIgnored private var planning: Task<Void, Never>?
+    /// Goes up with every plan; a plan finishing after a newer one started
+    /// throws its result away.
+    @ObservationIgnored private var generation = 0
 
     private let defaults = UserDefaults.standard
 
@@ -61,13 +66,14 @@ final class PassAlerts: NSObject, UNUserNotificationCenterDelegate {
 
     /// Watch a satellite, or stop watching it. The first one asks for
     /// permission to notify.
-    func toggle(_ entry: TleEntry) async {
+    func toggle(_ entry: TleEntry, categoryId: String?) async {
         guard let norad = entry.norad else { return }
         if isWatched(norad) {
             watched.removeAll { $0.id == norad }
         } else {
             if authorization == .notDetermined { await requestAuthorization() }
-            watched.append(Watched(entry: entry, updated: .now))
+            guard !isWatched(norad) else { return }     // a second tap while the permission was asked
+            watched.append(Watched(entry: entry, updated: .now, categoryId: categoryId))
         }
         saveWatched()
         await reschedule()
@@ -99,15 +105,20 @@ final class PassAlerts: NSObject, UNUserNotificationCenterDelegate {
         defaults.set(try? JSONEncoder().encode(watched), forKey: "alerts.watched")
     }
 
-    /// Plans the next two days again, from scratch.
+    /// Plans the next two days again, from scratch. Plans overlap (a scene
+    /// change, a move and a setting can each start one), so only the newest
+    /// one is kept, and it swaps the pending notifications in one step with no
+    /// suspension in between.
     func reschedule() async {
-        planning?.cancel()
+        generation += 1
+        let mine = generation
         let center = UNUserNotificationCenter.current()
         guard let observer = observer(), !watched.isEmpty else {
             center.removeAllPendingNotificationRequests()
             planned = []
             return
         }
+        let leadMinutes = self.leadMinutes
         let watched = self.watched, lead = TimeInterval(leadMinutes * 60)
         let minPeak = Double(minPeakDeg), visibleOnly = self.visibleOnly
         let task = Task.detached(priority: .utility) { () -> [Planned] in
@@ -127,21 +138,27 @@ final class PassAlerts: NSObject, UNUserNotificationCenterDelegate {
             return Array(plans.sorted { $0.fire < $1.fire }.prefix(Self.maxPending))
         }
         let plans = await task.value
-        guard !Task.isCancelled else { return }
-        center.removeAllPendingNotificationRequests()
-        if authorization == .authorized || authorization == .provisional || authorization == .ephemeral {
-            for p in plans {
-                let content = UNMutableNotificationContent()
-                content.title = "\(p.name) in \(leadMinutes) min"
-                content.body = Self.describe(p.pass)
-                content.sound = .default
-                content.threadIdentifier = "pass-\(p.norad)"
-                content.userInfo = ["norad": p.norad]
-                let trigger = UNTimeIntervalNotificationTrigger(timeInterval: max(1, p.fire.timeIntervalSinceNow), repeats: false)
-                try? await center.add(UNNotificationRequest(identifier: p.id, content: content, trigger: trigger))
-            }
-        }
+        guard mine == generation else { return }
+        let allowed = authorization == .authorized || authorization == .provisional || authorization == .ephemeral
+        Self.replacePending(with: allowed ? plans : [], leadMinutes: leadMinutes, in: center)
         planned = plans
+    }
+
+    /// Swaps every pending alert for these. Synchronous on purpose: with no
+    /// suspension point, no other plan can clear the list halfway through
+    /// filling it.
+    private static func replacePending(with plans: [Planned], leadMinutes: Int, in center: UNUserNotificationCenter) {
+        center.removeAllPendingNotificationRequests()
+        for p in plans {
+            let content = UNMutableNotificationContent()
+            content.title = "\(p.name) in \(leadMinutes) min"
+            content.body = describe(p.pass)
+            content.sound = .default
+            content.threadIdentifier = "pass-\(p.norad)"
+            content.userInfo = ["norad": p.norad]
+            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: max(1, p.fire.timeIntervalSinceNow), repeats: false)
+            center.add(UNNotificationRequest(identifier: p.id, content: content, trigger: trigger), withCompletionHandler: nil)
+        }
     }
 
     /// "Rises 21:42 in the SW, highest 54° in the S at 21:45, sets 21:48 in the E."
@@ -166,9 +183,11 @@ final class PassAlerts: NSObject, UNUserNotificationCenterDelegate {
     /// iOS woke the app in the background: newer elements for what is
     /// watched, then plan again.
     func backgroundRefresh() async {
-        for (i, w) in watched.enumerated() where Date().timeIntervalSince(w.updated) > 12 * 3600 {
-            guard let norad = w.entry.norad, let fresh = await tle.satellite(norad: norad), i < watched.count else { continue }
-            watched[i] = Watched(entry: fresh, updated: .now)
+        for w in watched where Date().timeIntervalSince(w.updated) > 12 * 3600 {
+            guard let norad = w.entry.norad, let fresh = await tle.satellite(norad: norad),
+                  let i = watched.firstIndex(where: { $0.id == norad })   // the list may have changed meanwhile
+            else { continue }
+            watched[i] = Watched(entry: fresh, updated: .now, categoryId: watched[i].categoryId)
         }
         saveWatched()
         await refreshAuthorization()
@@ -187,8 +206,8 @@ final class PassAlerts: NSObject, UNUserNotificationCenterDelegate {
     nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
         guard let norad = response.notification.request.content.userInfo["norad"] as? Int else { return }
         await MainActor.run {
-            let entry = watched.first { $0.id == norad }?.entry
-            onOpen?(norad, entry)
+            let w = watched.first { $0.id == norad }
+            onOpen?(norad, w?.entry, w?.categoryId)
         }
     }
 }

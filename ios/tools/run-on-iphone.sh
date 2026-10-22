@@ -5,6 +5,7 @@
 #
 #   ios/tools/run-on-iphone.sh            the one iPhone that is connected
 #   ORBIT_DEVICE=<udid> ORBIT_TEAM=<team id> ios/tools/run-on-iphone.sh
+#   ios/tools/run-on-iphone.sh --no-launch   install only: don't bring it to the front
 #
 # The phone needs Developer Mode on (Settings → Privacy & Security). The team ID
 # is read from Xcode at run time, so it never lands in the repository.
@@ -80,4 +81,6 @@ fi
 app=build/device/Build/Products/Release-iphoneos/Orbit.app
 
 xcrun devicectl device install app --device "$device" "$app"
-xcrun devicectl device process launch --device "$device" com.kotatko.sattracker
+if [ "${1:-}" != "--no-launch" ]; then
+    xcrun devicectl device process launch --device "$device" com.kotatko.sattracker
+fi

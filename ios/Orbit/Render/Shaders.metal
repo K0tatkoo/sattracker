@@ -167,14 +167,18 @@ struct Sprite {
     uint sizing;
 };
 
-constant uint SHAPE_SOFT = 0;    // the dark theme's satellite dot: solid core, soft edge
-constant uint SHAPE_SOLID = 1;   // a plain disc with an anti-aliased edge
-constant uint SHAPE_RING = 2;    // the selection ring
-constant uint SHAPE_GLOW = 3;    // stars and nebulae: bright core, long halo
+enum SpriteShape : uint {
+    SHAPE_SOFT = 0,    // the dark theme's satellite dot: solid core, soft edge
+    SHAPE_SOLID = 1,   // a plain disc with an anti-aliased edge
+    SHAPE_RING = 2,    // the selection ring
+    SHAPE_GLOW = 3,    // stars and nebulae: bright core, long halo
+};
 
-constant uint SIZE_POINTS = 0;   // `size` is in points, whatever the distance
-constant uint SIZE_ATTENUATED = 1;   // three.js Points with sizeAttenuation
-constant uint SIZE_WORLD = 2;    // three.js Sprite: world units, in perspective
+enum SpriteSizing : uint {
+    SIZE_POINTS = 0,       // `size` is in points, whatever the distance
+    SIZE_ATTENUATED = 1,   // three.js Points with sizeAttenuation
+    SIZE_WORLD = 2,        // three.js Sprite: world units, in perspective
+};
 
 struct SpriteOut {
     float4 position [[position]];

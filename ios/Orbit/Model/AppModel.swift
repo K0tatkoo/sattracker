@@ -77,7 +77,7 @@ final class AppModel {
         observer = SharedStore.observer
         sharedObserver = observer
         alerts.observer = { [weak self] in self?.observer ?? SharedStore.observer }
-        alerts.onOpen = { [weak self] norad, entry in self?.openSatellite(norad, entry: entry) }
+        alerts.onOpen = { [weak self] norad, entry, category in self?.openSatellite(norad, entry: entry, categoryId: category) }
         location.onLocation = { [weak self] in self?.located($0) }
         location.onAccess = { [weak self] granted in self?.accessChanged(granted) }
     }
@@ -124,11 +124,17 @@ final class AppModel {
         if enabled.contains(c.id) {
             enabled.remove(c.id)
             store.remove(category: c.id)
+            // A choice still waiting for its category is overtaken by this one.
+            pendingSelection = nil
             if let n = selectedNorad, store.index(norad: n) == nil { deselect() }
         } else {
             enabled.insert(c.id)
             load(c)
         }
+        saveEnabled()
+    }
+
+    private func saveEnabled() {
         UserDefaults.standard.set(Array(enabled), forKey: Self.enabledKey)
     }
 
@@ -160,11 +166,13 @@ final class AppModel {
         }
     }
 
-    /// A satellite chosen in search whose category was off: select it now it
-    /// is here, or pin it when the category's cap left it out.
+    /// A satellite chosen before its category was on the globe: select it now
+    /// it is here, or pin it when the category's cap left it out. Nothing is
+    /// decided while categories are still arriving — including at a cold
+    /// launch from a notification or the widget, before `start()` has run.
     private func afterLoad() {
         guard let want = pendingSelection, let norad = want.norad else { return }
-        let waiting = Catalog.categories.contains { enabled.contains($0.id) && loading.contains($0.id) }
+        let waiting = !started || !loading.isEmpty
         if store.index(norad: norad) != nil {
             pendingSelection = nil
             select(norad: norad)
@@ -227,6 +235,7 @@ final class AppModel {
     func choose(_ entry: TleEntry, categoryId: String?) {
         guard let norad = entry.norad else { return }
         sheet = nil
+        pendingSelection = nil      // a new choice replaces one still waiting
         if store.index(norad: norad) != nil {
             select(norad: norad)
             fly(to: norad)
@@ -246,22 +255,21 @@ final class AppModel {
         }
     }
 
-    /// From a notification or the widget: open this satellite's card.
-    func openSatellite(_ norad: Int, entry: TleEntry? = nil) {
-        if store.index(norad: norad) != nil {
-            choose(store.sat(norad: norad)!.entry, categoryId: nil)
+    /// From a notification or the widget: open this satellite's card, in
+    /// its own category when it has one (pinning is for satellites that
+    /// belong to none).
+    func openSatellite(_ norad: Int, entry: TleEntry? = nil, categoryId: String? = nil) {
+        if let sat = store.sat(norad: norad) {
+            choose(sat.entry, categoryId: nil)
             return
         }
-        if norad == Catalog.issNorad, let iss = SharedStore.iss?.entry ?? entry {
-            choose(iss, categoryId: "stations")
-            return
-        }
-        if let entry {
-            choose(entry, categoryId: nil)
+        let category = norad == Catalog.issNorad ? "stations" : categoryId
+        if let known = entry ?? (norad == Catalog.issNorad ? SharedStore.iss?.entry : nil) {
+            choose(known, categoryId: category)
             return
         }
         Task {
-            if let e = await tle.satellite(norad: norad) { choose(e, categoryId: nil) }
+            if let e = await tle.satellite(norad: norad) { choose(e, categoryId: category) }
         }
     }
 
@@ -273,11 +281,17 @@ final class AppModel {
 
     func isPinned(_ norad: Int) -> Bool { pinned.contains { $0.norad == norad } }
 
+    /// Pins it (once), and shows the pinned ones even if their chip was off.
     func pin(_ entry: TleEntry) {
-        guard let norad = entry.norad, !isPinned(norad) else { return }
-        pinned.append(entry)
-        savePinned()
-        enabled.insert(Catalog.pinned.id)
+        guard let norad = entry.norad else { return }
+        if !isPinned(norad) {
+            pinned.append(entry)
+            savePinned()
+        }
+        if !enabled.contains(Catalog.pinned.id) {
+            enabled.insert(Catalog.pinned.id)
+            saveEnabled()
+        }
         store.replace(Catalog.pinned, with: pinned)
     }
 
@@ -295,9 +309,10 @@ final class AppModel {
     /// Pinned elements a day old or more are fetched again.
     private func refreshPinned() async {
         var changed = false
-        for (i, e) in pinned.enumerated() {
+        for e in pinned {
             guard let norad = e.norad, let epoch = e.epoch, Date().timeIntervalSince(epoch) > 86400,
-                  let fresh = await tle.satellite(norad: norad), fresh.line1 != e.line1, i < pinned.count
+                  let fresh = await tle.satellite(norad: norad), fresh.line1 != e.line1,
+                  let i = pinned.firstIndex(where: { $0.norad == norad })   // the list may have changed meanwhile
             else { continue }
             pinned[i] = fresh
             changed = true
@@ -316,9 +331,13 @@ final class AppModel {
         observer = g
         locationAccess = .allowed
         if !centred {
-            // On the first fix, swing round so YOU are front and centre.
+            // On the first fix, swing round so YOU are front and centre —
+            // unless the app opened on a satellite (a notification, the
+            // widget), which the camera is already turning to.
             centred = true
-            cameraRequest = .face(latDeg: g.latitudeDeg, lonDeg: g.longitudeDeg)
+            if selectedNorad == nil && pendingSelection == nil && cameraRequest == nil {
+                cameraRequest = .face(latDeg: g.latitudeDeg, lonDeg: g.longitudeDeg)
+            }
         }
         if sharedObserver.map({ Self.km(between: $0, and: g) > 1 }) ?? true {
             sharedObserver = g

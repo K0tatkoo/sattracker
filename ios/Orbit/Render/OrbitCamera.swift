@@ -59,6 +59,8 @@ struct OrbitCamera {
     }
 
     mutating func set(position p: SIMD3<Double>) {
+        // A zero or non-finite point would turn every angle into NaN for good.
+        guard p.x.isFinite, p.y.isFinite, p.z.isFinite, length(p) > 1e-9 else { return }
         radius = min(max(length(p), Self.minDistance), Self.maxDistance)
         theta = atan2(p.x, p.z)
         phi = acos(min(max(p.y / length(p), -1), 1))
@@ -85,14 +87,16 @@ struct OrbitCamera {
     mutating func update(dt: Double) {
         let frames = min(max(dt, 0), 0.25) * 60
         if let g = goal {
-            // The page's swing: lerp 6 % of the way each frame.
+            // The page's swing: lerp 6 % of the way each frame, to a goal
+            // inside the zoom limits, so it can always be reached.
+            let target = normalize(g.position) * min(max(length(g.position), Self.minDistance), Self.maxDistance)
             let f = 1 - pow(1 - 0.06, frames)
-            let p = position + (g.position - position) * f
-            let len = length(position) + (length(g.position) - length(position)) * f
+            let p = position + (target - position) * f
+            let len = length(position) + (length(target) - length(position)) * f
             set(position: normalize(p) * len)
             deltaTheta = 0
             deltaPhi = 0
-            if distance(position, g.position) < 0.03 {
+            if !target.x.isFinite || distance(position, target) < 0.03 {
                 goal = nil
                 if g.thenAutoRotate { autoRotate = true }
             }
