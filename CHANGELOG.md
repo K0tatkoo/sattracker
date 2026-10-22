@@ -5,6 +5,16 @@ when something people rely on changes or goes away, MINOR for something new,
 PATCH for a fix — and each is a git tag (`vX.Y.Z`) on the commit that
 shipped. `tools/release` in Claudes Projects writes these entries.
 
+## 2.0.3 — 2026-10-22
+
+A new icon: a ringed planet with its satellite, in the same flat violet as the other n3d apps
+
+- New icon: the ringed planet, in the family's flat violet
+- iOS: fix what the review of the native rewrite found
+- iOS: rewrite Orbit natively — Metal globe, Liquid Glass, Swift SGP4
+- iOS: read Celestrak's CRLF lines, so live orbits are used
+- Add an iPhone version of Orbit (ios/)
+
 ## 2.0.2 — 2026-10-06
 
 Buttons, the update bar and switches are one flat violet, matching the n3d sites
