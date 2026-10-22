@@ -10,6 +10,7 @@
 		0871977A93D8792480FFB8C9 /* SharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E699E9F78844A412B22DCB5 /* SharedStore.swift */; };
 		0A3A5194C52C3E2C17FE770E /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBDD45DA7B7C19762768101 /* RootView.swift */; };
 		11F22CD0743427AC1E9A82F6 /* Look.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A8C0A0E0B43CFD6F59AF02A /* Look.swift */; };
+		182832C080E0DC973706ABFF /* OrbitMarkGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF2BE3D32725F5C69AC7372 /* OrbitMarkGeometry.swift */; };
 		1F6ECEFBDBE871517FAD8285 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B37BBC9B9B68A1EC2B0ED0F /* WidgetKit.framework */; };
 		2A462D23431B68FD2CA9F382 /* OrbitWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2759F544C30922B8464176D /* OrbitWidget.swift */; };
 		2B36A43D64B52E2EA71C5F5E /* SharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E699E9F78844A412B22DCB5 /* SharedStore.swift */; };
@@ -19,6 +20,7 @@
 		414917F738AF2DE93F163769 /* OrbitCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF54CA5F5741038CB1C4187 /* OrbitCamera.swift */; };
 		4BA4873548556BCE80292890 /* TleRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 279F8A6C7199BAAD6C121C4A /* TleRepository.swift */; };
 		4F862B1FAFA6C4609E8F60C1 /* SatelliteCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D3FDACDF33EDCC35F351968 /* SatelliteCard.swift */; };
+		66C96DE546BDE161C9A55F96 /* OrbitMarkGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFF2BE3D32725F5C69AC7372 /* OrbitMarkGeometry.swift */; };
 		766210A7D0AB9CBC8C2665CE /* PassAlerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21F1A578F0DE47BD04717E46 /* PassAlerts.swift */; };
 		873A3B554C2E9B9F43ACDAE0 /* OrbitCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3CAC3D01A540F62C1B46DAC8 /* OrbitCore */; };
 		98CD1D0B7CBE57EF512C8532 /* AlertsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD89278EDE272FD005DE19DD /* AlertsSheet.swift */; };
@@ -90,6 +92,7 @@
 		B1987D3B7FAB53F1C10A8EB9 /* GlobeRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobeRenderer.swift; sourceTree = "<group>"; };
 		B2759F544C30922B8464176D /* OrbitWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbitWidget.swift; sourceTree = "<group>"; };
 		B28405B2B728F77988671A8C /* LocationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationProvider.swift; sourceTree = "<group>"; };
+		BFF2BE3D32725F5C69AC7372 /* OrbitMarkGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbitMarkGeometry.swift; sourceTree = "<group>"; };
 		C6C47FCF2B7FC4CA99869AFA /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
 		E6829183B7B4A0FC92EBB94D /* SatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SatStore.swift; sourceTree = "<group>"; };
 		E691E1A576C579A627A7BDDF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -123,6 +126,7 @@
 			isa = PBXGroup;
 			children = (
 				3A8C0A0E0B43CFD6F59AF02A /* Look.swift */,
+				BFF2BE3D32725F5C69AC7372 /* OrbitMarkGeometry.swift */,
 				4E699E9F78844A412B22DCB5 /* SharedStore.swift */,
 				279F8A6C7199BAAD6C121C4A /* TleRepository.swift */,
 			);
@@ -389,6 +393,7 @@
 				11F22CD0743427AC1E9A82F6 /* Look.swift in Sources */,
 				FE1F71420B0761A4E62AA824 /* OrbitApp.swift in Sources */,
 				414917F738AF2DE93F163769 /* OrbitCamera.swift in Sources */,
+				66C96DE546BDE161C9A55F96 /* OrbitMarkGeometry.swift in Sources */,
 				766210A7D0AB9CBC8C2665CE /* PassAlerts.swift in Sources */,
 				0A3A5194C52C3E2C17FE770E /* RootView.swift in Sources */,
 				CEE582A4DEA17ADAB15E7BD0 /* SatStore.swift in Sources */,
@@ -405,6 +410,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B9104DE790BFFA8341B23343 /* Look.swift in Sources */,
+				182832C080E0DC973706ABFF /* OrbitMarkGeometry.swift in Sources */,
 				2A462D23431B68FD2CA9F382 /* OrbitWidget.swift in Sources */,
 				2B36A43D64B52E2EA71C5F5E /* SharedStore.swift in Sources */,
 				3168283B5DDBF8452F982A92 /* TleRepository.swift in Sources */,

@@ -11,7 +11,7 @@ struct AboutSheet: View {
             List {
                 Section {
                     VStack(spacing: 10) {
-                        OrbitMark(lineWidth: 1.5)
+                        OrbitMark()
                             .frame(width: 64, height: 64)
                             .foregroundStyle(.tint)
                         Text("Orbit").font(.title.bold())
