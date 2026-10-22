@@ -7,38 +7,138 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1F6891A4FC188FA13F849ABE /* LocationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C26A1837149E15D8696A9E0 /* LocationProvider.swift */; };
+		0871977A93D8792480FFB8C9 /* SharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E699E9F78844A412B22DCB5 /* SharedStore.swift */; };
+		0A3A5194C52C3E2C17FE770E /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBDD45DA7B7C19762768101 /* RootView.swift */; };
+		11F22CD0743427AC1E9A82F6 /* Look.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A8C0A0E0B43CFD6F59AF02A /* Look.swift */; };
+		1F6ECEFBDBE871517FAD8285 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B37BBC9B9B68A1EC2B0ED0F /* WidgetKit.framework */; };
+		2A462D23431B68FD2CA9F382 /* OrbitWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2759F544C30922B8464176D /* OrbitWidget.swift */; };
+		2B36A43D64B52E2EA71C5F5E /* SharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E699E9F78844A412B22DCB5 /* SharedStore.swift */; };
+		2B8623E043116D9DE5FD6F30 /* EarthTexture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2706E243B4D237827D9081B5 /* EarthTexture.swift */; };
+		3168283B5DDBF8452F982A92 /* TleRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 279F8A6C7199BAAD6C121C4A /* TleRepository.swift */; };
 		33335E4F882F977DFA66C647 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 20936134E6681D18358932B7 /* Assets.xcassets */; };
-		5447292226FE49CFBD1D3142 /* GlobeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6FE0FADBEC87D94BEFEBC4C /* GlobeViewController.swift */; };
-		83F1D08D56700DBC22050D33 /* TleRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F89638C6F717AD94343D4D81 /* TleRepository.swift */; };
-		AADB901C8EF2E9F96AE8AE54 /* Bridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0226B74190963F9EC29A025 /* Bridge.swift */; };
-		F357C37F50AA34603FFE4346 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 55D23766D2F5AAB7BEED1D05 /* assets */; };
+		414917F738AF2DE93F163769 /* OrbitCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEF54CA5F5741038CB1C4187 /* OrbitCamera.swift */; };
+		4BA4873548556BCE80292890 /* TleRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 279F8A6C7199BAAD6C121C4A /* TleRepository.swift */; };
+		4F862B1FAFA6C4609E8F60C1 /* SatelliteCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D3FDACDF33EDCC35F351968 /* SatelliteCard.swift */; };
+		766210A7D0AB9CBC8C2665CE /* PassAlerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21F1A578F0DE47BD04717E46 /* PassAlerts.swift */; };
+		873A3B554C2E9B9F43ACDAE0 /* OrbitCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3CAC3D01A540F62C1B46DAC8 /* OrbitCore */; };
+		98CD1D0B7CBE57EF512C8532 /* AlertsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD89278EDE272FD005DE19DD /* AlertsSheet.swift */; };
+		A5B2AAD978CFDAEC064B725B /* OrbitCore in Frameworks */ = {isa = PBXBuildFile; productRef = 8589594D82C3187B33298400 /* OrbitCore */; };
+		A7B6FE6B0C8493144950CD00 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CAEAD5906D53FF8355E97B0 /* AppModel.swift */; };
+		A7FF754FCEB1C49AEF4DA80D /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C06736C17EB222D56F55749 /* SwiftUI.framework */; };
+		AB4D205C765759BF1EE3F191 /* tle in Resources */ = {isa = PBXBuildFile; fileRef = 37FC37AA2F9542690D5F18EC /* tle */; };
+		B9104DE790BFFA8341B23343 /* Look.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A8C0A0E0B43CFD6F59AF02A /* Look.swift */; };
+		C62A4F6F42B630BBF5F822FD /* GlobeRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1987D3B7FAB53F1C10A8EB9 /* GlobeRenderer.swift */; };
+		C632BB0BB669A1132F3415C6 /* GlobeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70BD3F37EECA0ADDE3D6CAD2 /* GlobeView.swift */; };
+		C73C8F04182E958CC8CC4769 /* LocationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B28405B2B728F77988671A8C /* LocationProvider.swift */; };
+		CDF5949FE27E1C51B1E301BF /* AboutSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E7A8FDCA7921110AF308179 /* AboutSheet.swift */; };
+		CEE582A4DEA17ADAB15E7BD0 /* SatStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6829183B7B4A0FC92EBB94D /* SatStore.swift */; };
+		EBAD1607D730233B932E33E2 /* SearchSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA55FEE6A5F20A9F4DAC153 /* SearchSheet.swift */; };
+		F50D3AA772863B0E79134217 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = C6C47FCF2B7FC4CA99869AFA /* Shaders.metal */; };
+		F5FDE60EF534847D434E9069 /* OrbitWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 9B29A7CDF567D024690F83FB /* OrbitWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		FE1F71420B0761A4E62AA824 /* OrbitApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26EB023126B42D85C78E726C /* OrbitApp.swift */; };
+		FEC9783B0A12B3F03AA20846 /* earth-dark.jpg in Resources */ = {isa = PBXBuildFile; fileRef = F66CE2835D35F42859FD34B0 /* earth-dark.jpg */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		E9CCE991088543754932D9C4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0A57824173AF238C16E5DFDB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2798D2DC3EE098EBC3A6BCBC;
+			remoteInfo = OrbitWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		CA523A2E5751514D6D7002E5 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				F5FDE60EF534847D434E9069 /* OrbitWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		1EA55FEE6A5F20A9F4DAC153 /* SearchSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchSheet.swift; sourceTree = "<group>"; };
 		20936134E6681D18358932B7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		21F1A578F0DE47BD04717E46 /* PassAlerts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassAlerts.swift; sourceTree = "<group>"; };
 		26EB023126B42D85C78E726C /* OrbitApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbitApp.swift; sourceTree = "<group>"; };
-		55D23766D2F5AAB7BEED1D05 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = ../app/src/main/assets; sourceTree = SOURCE_ROOT; };
-		8C26A1837149E15D8696A9E0 /* LocationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationProvider.swift; sourceTree = "<group>"; };
+		2706E243B4D237827D9081B5 /* EarthTexture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EarthTexture.swift; sourceTree = "<group>"; };
+		279F8A6C7199BAAD6C121C4A /* TleRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TleRepository.swift; sourceTree = "<group>"; };
+		37FC37AA2F9542690D5F18EC /* tle */ = {isa = PBXFileReference; lastKnownFileType = folder; name = tle; path = ../app/src/main/assets/tle; sourceTree = SOURCE_ROOT; };
+		3A8C0A0E0B43CFD6F59AF02A /* Look.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Look.swift; sourceTree = "<group>"; };
+		3B37BBC9B9B68A1EC2B0ED0F /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		3DBDD45DA7B7C19762768101 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		40DE04DA099EA9A8F3BB1E4F /* OrbitWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = OrbitWidget.entitlements; sourceTree = "<group>"; };
+		4C06736C17EB222D56F55749 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		4E699E9F78844A412B22DCB5 /* SharedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedStore.swift; sourceTree = "<group>"; };
+		6CAEAD5906D53FF8355E97B0 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		70BD3F37EECA0ADDE3D6CAD2 /* GlobeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobeView.swift; sourceTree = "<group>"; };
+		7C346AFF3E0EF6B7E1402BEF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		8D3FDACDF33EDCC35F351968 /* SatelliteCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SatelliteCard.swift; sourceTree = "<group>"; };
+		8E7A8FDCA7921110AF308179 /* AboutSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutSheet.swift; sourceTree = "<group>"; };
 		93E43D9E19F5EF7D480B0771 /* Orbit.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Orbit.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A0226B74190963F9EC29A025 /* Bridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bridge.swift; sourceTree = "<group>"; };
-		B6FE0FADBEC87D94BEFEBC4C /* GlobeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobeViewController.swift; sourceTree = "<group>"; };
+		9B29A7CDF567D024690F83FB /* OrbitWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = OrbitWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA0E97AE18D6AF113D5ECCC8 /* Orbit.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Orbit.entitlements; sourceTree = "<group>"; };
+		AECB0C579C3453B09F0A6439 /* OrbitCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = OrbitCore; path = OrbitCore; sourceTree = SOURCE_ROOT; };
+		AEF54CA5F5741038CB1C4187 /* OrbitCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbitCamera.swift; sourceTree = "<group>"; };
+		B1987D3B7FAB53F1C10A8EB9 /* GlobeRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobeRenderer.swift; sourceTree = "<group>"; };
+		B2759F544C30922B8464176D /* OrbitWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbitWidget.swift; sourceTree = "<group>"; };
+		B28405B2B728F77988671A8C /* LocationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationProvider.swift; sourceTree = "<group>"; };
+		C6C47FCF2B7FC4CA99869AFA /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
+		E6829183B7B4A0FC92EBB94D /* SatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SatStore.swift; sourceTree = "<group>"; };
 		E691E1A576C579A627A7BDDF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		F89638C6F717AD94343D4D81 /* TleRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TleRepository.swift; sourceTree = "<group>"; };
+		F66CE2835D35F42859FD34B0 /* earth-dark.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "earth-dark.jpg"; sourceTree = "<group>"; };
+		FD89278EDE272FD005DE19DD /* AlertsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertsSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFrameworksBuildPhase section */
+		17959A5788CEFAB3273A23F2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A5B2AAD978CFDAEC064B725B /* OrbitCore in Frameworks */,
+				1F6ECEFBDBE871517FAD8285 /* WidgetKit.framework in Frameworks */,
+				A7FF754FCEB1C49AEF4DA80D /* SwiftUI.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AC23419267EB092E8D8A05AB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				873A3B554C2E9B9F43ACDAE0 /* OrbitCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
 /* Begin PBXGroup section */
+		008B6E5DF4BE7EDB581850D3 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				3A8C0A0E0B43CFD6F59AF02A /* Look.swift */,
+				4E699E9F78844A412B22DCB5 /* SharedStore.swift */,
+				279F8A6C7199BAAD6C121C4A /* TleRepository.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
 		00ECA7FF55D55998AD25B1CA /* Orbit */ = {
 			isa = PBXGroup;
 			children = (
 				20936134E6681D18358932B7 /* Assets.xcassets */,
-				A0226B74190963F9EC29A025 /* Bridge.swift */,
-				B6FE0FADBEC87D94BEFEBC4C /* GlobeViewController.swift */,
 				E691E1A576C579A627A7BDDF /* Info.plist */,
-				8C26A1837149E15D8696A9E0 /* LocationProvider.swift */,
+				AA0E97AE18D6AF113D5ECCC8 /* Orbit.entitlements */,
 				26EB023126B42D85C78E726C /* OrbitApp.swift */,
-				F89638C6F717AD94343D4D81 /* TleRepository.swift */,
+				3E0398700AC5BBFB365688B5 /* Model */,
+				2463CBDAC27E9E9CC7ECB3E6 /* Render */,
+				674A917B4687D74A5D010660 /* UI */,
 			);
 			path = Orbit;
 			sourceTree = "<group>";
@@ -59,10 +159,72 @@
 			path = app;
 			sourceTree = "<group>";
 		};
+		2463CBDAC27E9E9CC7ECB3E6 /* Render */ = {
+			isa = PBXGroup;
+			children = (
+				2706E243B4D237827D9081B5 /* EarthTexture.swift */,
+				B1987D3B7FAB53F1C10A8EB9 /* GlobeRenderer.swift */,
+				70BD3F37EECA0ADDE3D6CAD2 /* GlobeView.swift */,
+				AEF54CA5F5741038CB1C4187 /* OrbitCamera.swift */,
+				C6C47FCF2B7FC4CA99869AFA /* Shaders.metal */,
+			);
+			path = Render;
+			sourceTree = "<group>";
+		};
+		3E0398700AC5BBFB365688B5 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				6CAEAD5906D53FF8355E97B0 /* AppModel.swift */,
+				B28405B2B728F77988671A8C /* LocationProvider.swift */,
+				21F1A578F0DE47BD04717E46 /* PassAlerts.swift */,
+				E6829183B7B4A0FC92EBB94D /* SatStore.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		674A917B4687D74A5D010660 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				8E7A8FDCA7921110AF308179 /* AboutSheet.swift */,
+				FD89278EDE272FD005DE19DD /* AlertsSheet.swift */,
+				3DBDD45DA7B7C19762768101 /* RootView.swift */,
+				8D3FDACDF33EDCC35F351968 /* SatelliteCard.swift */,
+				1EA55FEE6A5F20A9F4DAC153 /* SearchSheet.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		850459FD6675EAC8E77D5D3B /* OrbitWidget */ = {
+			isa = PBXGroup;
+			children = (
+				7C346AFF3E0EF6B7E1402BEF /* Info.plist */,
+				40DE04DA099EA9A8F3BB1E4F /* OrbitWidget.entitlements */,
+				B2759F544C30922B8464176D /* OrbitWidget.swift */,
+			);
+			path = OrbitWidget;
+			sourceTree = "<group>";
+		};
+		A0A25C17E75C74C24DCDCEB5 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				AECB0C579C3453B09F0A6439 /* OrbitCore */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		AFE9D66385D534EB1845AA76 /* lib */ = {
+			isa = PBXGroup;
+			children = (
+				F66CE2835D35F42859FD34B0 /* earth-dark.jpg */,
+			);
+			path = lib;
+			sourceTree = "<group>";
+		};
 		B307547D1ABD752BE02491B9 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				93E43D9E19F5EF7D480B0771 /* Orbit.app */,
+				9B29A7CDF567D024690F83FB /* OrbitWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -71,9 +233,22 @@
 			isa = PBXGroup;
 			children = (
 				00ECA7FF55D55998AD25B1CA /* Orbit */,
+				850459FD6675EAC8E77D5D3B /* OrbitWidget */,
+				A0A25C17E75C74C24DCDCEB5 /* Packages */,
 				D8C52A2C33782EDDB46619FE /* SatelliteTracker */,
+				008B6E5DF4BE7EDB581850D3 /* Shared */,
+				EF4DE41EA1BB1FE8D976F425 /* Frameworks */,
 				B307547D1ABD752BE02491B9 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		CC5436F7E89F8D6E58B1FC05 /* assets */ = {
+			isa = PBXGroup;
+			children = (
+				37FC37AA2F9542690D5F18EC /* tle */,
+				AFE9D66385D534EB1845AA76 /* lib */,
+			);
+			path = assets;
 			sourceTree = "<group>";
 		};
 		D8C52A2C33782EDDB46619FE /* SatelliteTracker */ = {
@@ -88,27 +263,59 @@
 		DB32C07FB06400D56E1E6920 /* main */ = {
 			isa = PBXGroup;
 			children = (
-				55D23766D2F5AAB7BEED1D05 /* assets */,
+				CC5436F7E89F8D6E58B1FC05 /* assets */,
 			);
 			path = main;
+			sourceTree = "<group>";
+		};
+		EF4DE41EA1BB1FE8D976F425 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				4C06736C17EB222D56F55749 /* SwiftUI.framework */,
+				3B37BBC9B9B68A1EC2B0ED0F /* WidgetKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		2798D2DC3EE098EBC3A6BCBC /* OrbitWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8ED495E0B501C0453528E9D8 /* Build configuration list for PBXNativeTarget "OrbitWidget" */;
+			buildPhases = (
+				DBAA43278A703A2C3EA8DE13 /* Sources */,
+				17959A5788CEFAB3273A23F2 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = OrbitWidget;
+			packageProductDependencies = (
+				8589594D82C3187B33298400 /* OrbitCore */,
+			);
+			productName = OrbitWidget;
+			productReference = 9B29A7CDF567D024690F83FB /* OrbitWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		B87EF018B641D85E34ED2D32 /* Orbit */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1ED43C45F010E6E18A4680AC /* Build configuration list for PBXNativeTarget "Orbit" */;
 			buildPhases = (
 				1A83EACBC247740EBC0E6135 /* Sources */,
 				744EABC5C142532226634E12 /* Resources */,
+				AC23419267EB092E8D8A05AB /* Frameworks */,
+				CA523A2E5751514D6D7002E5 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				F9C4658C5DDAB170622182F7 /* PBXTargetDependency */,
 			);
 			name = Orbit;
 			packageProductDependencies = (
+				3CAC3D01A540F62C1B46DAC8 /* OrbitCore */,
 			);
 			productName = Orbit;
 			productReference = 93E43D9E19F5EF7D480B0771 /* Orbit.app */;
@@ -123,6 +330,9 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					2798D2DC3EE098EBC3A6BCBC = {
+						ProvisioningStyle = Automatic;
+					};
 					B87EF018B641D85E34ED2D32 = {
 						ProvisioningStyle = Automatic;
 					};
@@ -137,12 +347,16 @@
 			);
 			mainGroup = C5F01767FDAE31EE06DFF523;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				9FA2033AA0448ED406768CFC /* XCLocalSwiftPackageReference "OrbitCore" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B307547D1ABD752BE02491B9 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				B87EF018B641D85E34ED2D32 /* Orbit */,
+				2798D2DC3EE098EBC3A6BCBC /* OrbitWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -153,7 +367,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				33335E4F882F977DFA66C647 /* Assets.xcassets in Resources */,
-				F357C37F50AA34603FFE4346 /* assets in Resources */,
+				FEC9783B0A12B3F03AA20846 /* earth-dark.jpg in Resources */,
+				AB4D205C765759BF1EE3F191 /* tle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -164,23 +379,74 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AADB901C8EF2E9F96AE8AE54 /* Bridge.swift in Sources */,
-				5447292226FE49CFBD1D3142 /* GlobeViewController.swift in Sources */,
-				1F6891A4FC188FA13F849ABE /* LocationProvider.swift in Sources */,
+				CDF5949FE27E1C51B1E301BF /* AboutSheet.swift in Sources */,
+				98CD1D0B7CBE57EF512C8532 /* AlertsSheet.swift in Sources */,
+				A7B6FE6B0C8493144950CD00 /* AppModel.swift in Sources */,
+				2B8623E043116D9DE5FD6F30 /* EarthTexture.swift in Sources */,
+				C62A4F6F42B630BBF5F822FD /* GlobeRenderer.swift in Sources */,
+				C632BB0BB669A1132F3415C6 /* GlobeView.swift in Sources */,
+				C73C8F04182E958CC8CC4769 /* LocationProvider.swift in Sources */,
+				11F22CD0743427AC1E9A82F6 /* Look.swift in Sources */,
 				FE1F71420B0761A4E62AA824 /* OrbitApp.swift in Sources */,
-				83F1D08D56700DBC22050D33 /* TleRepository.swift in Sources */,
+				414917F738AF2DE93F163769 /* OrbitCamera.swift in Sources */,
+				766210A7D0AB9CBC8C2665CE /* PassAlerts.swift in Sources */,
+				0A3A5194C52C3E2C17FE770E /* RootView.swift in Sources */,
+				CEE582A4DEA17ADAB15E7BD0 /* SatStore.swift in Sources */,
+				4F862B1FAFA6C4609E8F60C1 /* SatelliteCard.swift in Sources */,
+				EBAD1607D730233B932E33E2 /* SearchSheet.swift in Sources */,
+				F50D3AA772863B0E79134217 /* Shaders.metal in Sources */,
+				0871977A93D8792480FFB8C9 /* SharedStore.swift in Sources */,
+				4BA4873548556BCE80292890 /* TleRepository.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DBAA43278A703A2C3EA8DE13 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B9104DE790BFFA8341B23343 /* Look.swift in Sources */,
+				2A462D23431B68FD2CA9F382 /* OrbitWidget.swift in Sources */,
+				2B36A43D64B52E2EA71C5F5E /* SharedStore.swift in Sources */,
+				3168283B5DDBF8452F982A92 /* TleRepository.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		F9C4658C5DDAB170622182F7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2798D2DC3EE098EBC3A6BCBC /* OrbitWidget */;
+			targetProxy = E9CCE991088543754932D9C4 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		02E57B85A3DC7E658278CEA6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = OrbitWidget/OrbitWidget.entitlements;
+				INFOPLIST_FILE = OrbitWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.kotatko.sattracker.widget;
+				PRODUCT_NAME = OrbitWidget;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		1C3F5A8A5772DFD0CD0785E5 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Orbit/Orbit.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CODE_SIGN_STYLE = Automatic;
 				INFOPLIST_FILE = Orbit/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -226,8 +492,9 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -239,8 +506,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.0.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 2.0.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -255,8 +522,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Orbit/Orbit.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CODE_SIGN_STYLE = Automatic;
 				INFOPLIST_FILE = Orbit/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -264,6 +532,24 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.kotatko.sattracker;
 				PRODUCT_NAME = Orbit;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		7A7F316C025D90B2E1C430F2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = OrbitWidget/OrbitWidget.entitlements;
+				INFOPLIST_FILE = OrbitWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.kotatko.sattracker.widget;
+				PRODUCT_NAME = OrbitWidget;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -302,8 +588,9 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -321,8 +608,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.0.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 2.0.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -355,7 +642,34 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
+		8ED495E0B501C0453528E9D8 /* Build configuration list for PBXNativeTarget "OrbitWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7A7F316C025D90B2E1C430F2 /* Debug */,
+				02E57B85A3DC7E658278CEA6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		9FA2033AA0448ED406768CFC /* XCLocalSwiftPackageReference "OrbitCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = OrbitCore;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		3CAC3D01A540F62C1B46DAC8 /* OrbitCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OrbitCore;
+		};
+		8589594D82C3187B33298400 /* OrbitCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OrbitCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 0A57824173AF238C16E5DFDB /* Project object */;
 }

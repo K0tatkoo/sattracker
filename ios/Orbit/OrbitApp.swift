@@ -1,20 +1,31 @@
 import SwiftUI
 
-/// Orbit's whole interface is the web page the Android app shows
-/// (`app/src/main/assets`, shared, not copied). This target is only the shell
-/// around it: the WebView, and the few things a page cannot do for itself —
-/// fetching orbits, knowing where you are, opening links, following the
-/// phone's dark mode.
+/// Orbit for iPhone: the Android app's globe, drawn natively (Metal) under
+/// Liquid Glass chrome, with the same orbits to the last digit (OrbitCore is
+/// satellite.js, ported and checked against it).
 @main
 struct OrbitApp: App {
+    @State private var model = AppModel.shared
+
     var body: some Scene {
         WindowGroup {
-            GlobeView().ignoresSafeArea()
+            RootView()
+                .environment(model)
         }
+        // Newer elements and the next two days of pass alerts, when iOS
+        // grants the app a moment in the background.
+        .backgroundTask(.appRefresh(PassAlerts.refreshTaskId)) {
+            await Self.refreshInBackground()
+        }
+    }
+
+    @MainActor
+    private static func refreshInBackground() async {
+        await AppModel.shared.alerts.backgroundRefresh()
     }
 }
 
-private struct GlobeView: UIViewControllerRepresentable {
-    func makeUIViewController(context: Context) -> GlobeViewController { GlobeViewController() }
-    func updateUIViewController(_ controller: GlobeViewController, context: Context) {}
+extension AppModel {
+    /// The one model: the background task and notifications reach it too.
+    static let shared = AppModel()
 }

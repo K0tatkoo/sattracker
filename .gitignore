@@ -14,3 +14,5 @@ captures/
 ios/build/
 xcuserdata/
 *.xcuserstate
+ios/OrbitCore/.build/
+ios/OrbitCore/.swiftpm/

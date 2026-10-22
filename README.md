@@ -149,35 +149,46 @@ MainActivity (Kotlin)
 
 ## 9. iPhone version (`ios/`)
 
-The same page in a Swift shell: `ios/Orbit` is the iPhone's `MainActivity`, and the Xcode
-project builds `app/src/main/assets` straight into the app, so both phones always show the
-same page. `Bridge.swift` defines `window.Android` with the Android method names, so
-`globe.js` doesn't know which phone it is on.
+A native app since iPhone 2.0.0 (before that, 1.0.0 was this same page in a Swift shell). Same
+satellites, same colours, same numbers; iPhone-native everywhere else.
 
-```
-WKWebView (the same assets/)
-        ▲  window.SatBridge.*            window.Android.* (Bridge.swift) ▼
-GlobeViewController (Swift)
- ├─ LocationProvider   → observer lat/lon (CoreLocation, while in use)
- └─ TleRepository      → same fetch, 3 h cache and bundled fallback as the Kotlin one
-```
+- **The globe** is drawn with Metal (`ios/Orbit/Render`): the page's three.js scene redrawn
+  piece for piece — the palette-repainted Earth under a lamp fixed top-left, the raised-globe
+  shadow pair, graticule, atmosphere and stars on the dark theme, fixed-size dots, the thin
+  selection ring, the selected satellite's orbit. Taps pick in screen space, as on Android. On a
+  phone held upright the camera starts far enough back that the whole Earth fits.
+- **The chrome** is SwiftUI in Liquid Glass (iOS 26+): glass toolbar, category chips, and the
+  satellite's card as a floating glass sheet that leaves the globe usable (the Earth glides up
+  out of its way). Follows the phone's light/dark setting live.
+- **The orbits** come from `ios/OrbitCore`, a Swift package: satellite.js 5.0.0's SGP4 ported
+  line for line, plus the page's look angles and passes. It is checked against satellite.js
+  itself — `node ios/tools/sgp4-fixtures.mjs` runs the bundled `satellite.min.js` (and the
+  page's own `nextRise`/`nextPass`) over near-Earth, GNSS, geostationary and Molniya orbits,
+  and `swift test` in `ios/OrbitCore` compares: positions agree to 10⁻¹⁰ km and every pass to
+  the millisecond. The Earth map and the offline TLEs are this app's own files, used in place.
+- **iPhone only:** search every category (and Celestrak itself) by name or NORAD number and fly
+  to the result; **pass alerts** (local notifications, planned two days ahead, optionally only
+  passes you can see: satellite sunlit, your sky dark); a **Next ISS pass** widget for the Home
+  and Lock Screens; a 24-hour pass list on the card; Follow keeps a satellite in front of you.
 
-Two things are missing because iOS gives them to no app. The page is told through
-`Android.capabilities()` and hides them:
-
-- **"Your phone is using" and the signal log.** iOS has no `GnssStatus` or raw measurements.
-- **Updating itself.** Only the App Store or TestFlight can replace an iPhone app.
+Two Android features are missing because iOS gives them to no app: the satellites your phone
+is using (no `GnssStatus` or raw measurements), and updating itself (only the App Store or
+TestFlight can replace an iPhone app).
 
 Build and run (needs Xcode, plus [XcodeGen](https://github.com/yonaskolb/XcodeGen) only when
-`project.yml` changes):
+`project.yml` changes; Xcode 26+ also asks for its Metal toolchain once,
+`xcodebuild -downloadComponent MetalToolchain`):
 
 ```bash
 cd ios && xcodegen          # regenerate Orbit.xcodeproj after editing project.yml
 open Orbit.xcodeproj        # then pick an iPhone simulator and press ▶ Run
+cd ios/OrbitCore && swift test   # the orbit engine against satellite.js
 ```
 
-On a real iPhone, a free Apple ID works but the app stops opening after 7 days until it is run
-from Xcode again. The paid developer program removes that limit.
+On a real iPhone, `ios/tools/run-on-iphone.sh` builds and installs it. A free Apple ID works
+but the app stops opening after 7 days until it is run again; the paid developer program removes
+that limit. The app and its widget share an App Group (`group.com.kotatko.sattracker`); with a
+free Apple ID it has to be added once in Xcode's Signing & Capabilities on both targets.
 
 ## License
 
