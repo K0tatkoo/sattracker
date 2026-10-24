@@ -41,8 +41,12 @@ struct AboutSheet: View {
                     }
                 }
 
+                // The privacy policy must be reachable from inside the app (App
+                // Store rule 5.1.1). No "for Android" here: the App Store turns
+                // away apps that name other mobile platforms (rule 2.3.10).
                 Section {
-                    Link("Orbit for Android, and the other apps", destination: URL(string: "https://n3d-store.com/apps")!)
+                    Link("Privacy policy", destination: URL(string: "https://n3d-store.com/orbit-privacy")!)
+                    Link("Support", destination: URL(string: "https://n3d-store.com/app-support#orbit")!)
                 }
             }
             .navigationTitle("About")
