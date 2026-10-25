@@ -238,7 +238,10 @@ final class GlobeRenderer: NSObject, MTKViewDelegate {
         let target: SIMD2<Double>
         switch cardSpace {
         case .sheet: target = SIMD2(0, max(0, (Double(SatelliteCard.compact) + 8 - top) / 2))
-        case .side(let width): target = SIMD2((Double(width) + 16) / 2, 0)
+        case .side(let width):
+            // A bar down the side (iPhone Duo) narrows what is left too.
+            let insets = view.safeAreaInsets
+            target = SIMD2((Double(insets.left) + Double(width) + 16 - Double(insets.right)) / 2, 0)
         case .bottom(let height):
             target = SIMD2(0, max(0, (Double(height) + 8 + Double(view.safeAreaInsets.bottom) + 56 - top) / 2))
         case nil: target = .zero
