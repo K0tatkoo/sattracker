@@ -16,18 +16,24 @@ struct RootView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.horizontalSizeClass) private var widthClass
     @State private var size = CGSize.zero
+    @State private var chrome = EdgeInsets()
 
     var body: some View {
-        let placement = CardPlacement(regular: widthClass == .regular, size: size)
+        // The measured size is the safe area's; the bars are the insets.
+        let screen = CGSize(width: size.width + chrome.leading + chrome.trailing,
+                            height: size.height + chrome.top + chrome.bottom)
+        let placement = CardPlacement(regular: widthClass == .regular, size: screen)
         // The floating card lives outside the one-sheet slot; the toolbar's
         // sheets still take it, and they put the card away as on the phone.
-        let floats = placement != .sheet
+        let floats = placement.floats
         NavigationStack {
             GlobeView(model: model, active: phase == .active,
-                      cardSpace: model.sheet == .card ? placement : nil)
+                      cardSpace: model.sheet == .card ? placement : nil, chrome: chrome)
                 .ignoresSafeArea()
                 .background(Color(Palette.of(scheme).bg).ignoresSafeArea())
                 .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+                // Under the bars, so its insets are the bars themselves.
+                .onGeometryChange(for: EdgeInsets.self) { $0.safeAreaInsets } action: { chrome = $0 }
                 .overlay(alignment: .top) { ToastView().padding(.top, 6) }
                 .overlay { if model.booting { BootBadge() } }
                 .overlay(alignment: placement.alignment) { FloatingCard(placement: placement) }
@@ -54,7 +60,7 @@ struct RootView: View {
                              set: { if !($0 == nil && floats && model.sheet == .card) { model.sheet = $0 } }),
                onDismiss: { model.sheetDismissed() }) { sheet in
             switch sheet {
-            case .card: SatelliteCard()
+            case .card: SatelliteCard(compact: placement.compact)
             case .search: SearchSheet()
             case .alerts: AlertsSheet()
             case .about: AboutSheet()
@@ -76,8 +82,8 @@ struct RootView: View {
 
 /// How the satellite's card is shown in the space there is.
 enum CardPlacement: Equatable {
-    /// The phone's glass sheet, pulled up for the passes.
-    case sheet
+    /// The phone's glass sheet, pulled up for the passes; this tall at rest.
+    case sheet(compact: CGFloat)
     /// A glass panel down the leading side, this wide.
     case side(width: CGFloat)
     /// A glass panel along the bottom, this tall.
@@ -85,7 +91,9 @@ enum CardPlacement: Equatable {
 
     init(regular: Bool, size: CGSize) {
         guard regular, size.width > 0 else {
-            self = .sheet
+            // A short screen (a closed iPhone Duo, a phone on its side) gets
+            // the short card, so the globe and the bars beside it stay in view.
+            self = .sheet(compact: size.height > 0 && size.height < 720 ? SatelliteCard.short : SatelliteCard.compact)
             return
         }
         // Beside the globe where the screen is wider than tall (the globe fits
@@ -99,6 +107,15 @@ enum CardPlacement: Equatable {
 
     var alignment: Alignment {
         if case .side = self { .topLeading } else { .bottom }
+    }
+
+    /// A panel of its own rather than a sheet.
+    var floats: Bool {
+        if case .sheet = self { false } else { true }
+    }
+
+    var compact: CGFloat {
+        if case .sheet(let height) = self { height } else { SatelliteCard.compact }
     }
 }
 

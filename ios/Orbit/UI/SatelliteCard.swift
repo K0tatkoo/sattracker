@@ -6,13 +6,23 @@ import SwiftUI
 /// Pulled up, it lists the passes of the next day. Where the width is regular
 /// it is a floating panel instead (`floating`), with everything in it at once.
 struct SatelliteCard: View {
+    /// At rest: the name, the eight facts and the next pass.
     static let compact: CGFloat = 356
+    /// At rest on a short screen: only the four facts that move.
+    static let short: CGFloat = 292
 
     var floating = false
+    var compact: CGFloat = Self.compact
 
     @Environment(AppModel.self) private var model
     @Environment(\.colorScheme) private var scheme
-    @State private var detent = PresentationDetent.height(Self.compact)
+    @State private var detent: PresentationDetent
+
+    init(floating: Bool = false, compact: CGFloat = Self.compact) {
+        self.floating = floating
+        self.compact = compact
+        _detent = State(initialValue: .height(compact))
+    }
     @State private var nextPass: String?
     @State private var passes: [Pass]?
 
@@ -25,8 +35,10 @@ struct SatelliteCard: View {
                                        description: Text("Its category was switched off."))
             }
         }
-        .presentationDetents([.height(Self.compact), .large], selection: $detent)
-        .presentationBackgroundInteraction(.enabled(upThrough: .height(Self.compact)))
+        .presentationDetents([.height(compact), .large], selection: $detent)
+        .presentationBackgroundInteraction(.enabled(upThrough: .height(compact)))
+        // Turned or folded while it rests: rest at the new height.
+        .onChange(of: compact) { _, now in if detent != .large { detent = .height(now) } }
         .presentationDragIndicator(.visible)
         .task(id: PassKey(norad: model.selectedNorad, observer: model.observer)) { await computePasses() }
     }
@@ -59,7 +71,9 @@ struct SatelliteCard: View {
                 }
 
                 TimelineView(.periodic(from: .now, by: 1)) { _ in
-                    if let live = model.store.sat(norad: sat.norad) { Facts(sat: live) }
+                    if let live = model.store.sat(norad: sat.norad) {
+                        Facts(sat: live, movingOnly: !floating && compact < Self.compact && detent != .large)
+                    }
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
@@ -143,9 +157,10 @@ struct SatelliteCard: View {
     }
 }
 
-/// The page's eight facts, live.
+/// The page's eight facts, live; or only the four that move, on a short card.
 private struct Facts: View {
     let sat: SatStore.Sat
+    var movingOnly = false
     @Environment(AppModel.self) private var model
 
     var body: some View {
@@ -160,11 +175,12 @@ private struct Facts: View {
             ("Sub-point", sat.alive ? String(format: "%.1f°, %.1f°", sat.latDeg, sat.lonDeg) : "—"),
             ("From you", fromYou),
         ]
+        let shown = movingOnly ? Array(cells.suffix(4)) : cells
         Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 12) {
-            ForEach(0..<4, id: \.self) { row in
+            ForEach(0..<shown.count / 2, id: \.self) { row in
                 GridRow {
-                    cell(cells[row * 2])
-                    cell(cells[row * 2 + 1])
+                    cell(shown[row * 2])
+                    cell(shown[row * 2 + 1])
                 }
             }
         }

@@ -1,6 +1,7 @@
 import MetalKit
 import OrbitCore
 import simd
+import SwiftUI
 
 /// The globe: the Android page's three.js scene, drawn with Metal. Everything
 /// the page drew is here in the same order and the same colours — the raised
@@ -81,7 +82,11 @@ final class GlobeRenderer: NSObject, MTKViewDelegate {
     private var fittedAspect: Double?
     /// Where the card covers the globe; the Earth moves into what is left.
     var cardSpace: CardPlacement?
-    /// How far up the Earth is moved for the card, points.
+    /// How far the bars reach in from each edge, as SwiftUI lays them out: the
+    /// navigation bar and the category chips, and on an iPhone Duo the bar
+    /// down the side. (The view's own safe area does not know about them.)
+    var chrome = EdgeInsets()
+    /// How far the Earth is moved (for the bars and the card), points.
     private var shiftPt = SIMD2<Double>(0, 0)
     private let startTime = CACurrentMediaTime()
 
@@ -202,12 +207,14 @@ final class GlobeRenderer: NSObject, MTKViewDelegate {
         let store = model.store
         store.propagate(jd: jd)
 
-        // Camera: fitted to the screen, requests from the model, then the
-        // controls. When the screen changes shape (turned, an iPad window
-        // resized, an iPhone Duo opened or closed) the distance follows, so the
-        // Earth fills as much of the new screen as it did of the old.
+        // Camera: fitted to the width a bar down the side leaves free,
+        // requests from the model, then the controls. When the screen changes
+        // shape (turned, an iPad window resized, an iPhone Duo opened or
+        // closed) the distance follows, so the Earth fills as much of the new
+        // screen as it did of the old.
         if view.drawableSize.width > 0, view.drawableSize.height > 0 {
-            let aspect = view.drawableSize.width / view.drawableSize.height
+            let sideBars = (chrome.leading + chrome.trailing) * view.contentScaleFactor
+            let aspect = max(view.drawableSize.width - sideBars, 1) / view.drawableSize.height
             if let was = fittedAspect {
                 if abs(aspect - was) > 0.01 {
                     camera.refit(from: was, to: aspect)
@@ -231,20 +238,19 @@ final class GlobeRenderer: NSObject, MTKViewDelegate {
         let drawable = view.drawableSize
         guard drawable.width > 0, drawable.height > 0 else { return }
 
-        // While the card is open the Earth moves into the space it leaves:
+        // The Earth sits in the middle of what the bars leave free across,
+        // and while the card is open it moves into the space the card leaves:
         // up between the toolbar and the card, or across beside a side panel,
         // so what you tapped stays in view.
-        let top = Double(view.safeAreaInsets.top) + 44
+        let top = Double(chrome.top), bottom = Double(chrome.bottom)
+        let leading = Double(chrome.leading), trailing = Double(chrome.trailing)
+        let across = (leading - trailing) / 2
         let target: SIMD2<Double>
         switch cardSpace {
-        case .sheet: target = SIMD2(0, max(0, (Double(SatelliteCard.compact) + 8 - top) / 2))
-        case .side(let width):
-            // A bar down the side (iPhone Duo) narrows what is left too.
-            let insets = view.safeAreaInsets
-            target = SIMD2((Double(insets.left) + Double(width) + 16 - Double(insets.right)) / 2, 0)
-        case .bottom(let height):
-            target = SIMD2(0, max(0, (Double(height) + 8 + Double(view.safeAreaInsets.bottom) + 56 - top) / 2))
-        case nil: target = .zero
+        case .sheet(let compact): target = SIMD2(across, max(0, (Double(compact) + 8 - top) / 2))
+        case .side(let width): target = SIMD2((leading + Double(width) + 16 - trailing) / 2, 0)
+        case .bottom(let height): target = SIMD2(across, max(0, (Double(height) + 8 + bottom - top) / 2))
+        case nil: target = SIMD2(across, 0)
         }
         shiftPt += (target - shiftPt) * (1 - pow(0.82, min(max(dt, 0), 0.25) * 60))
         let shift = simd_float4x4(columns: (SIMD4(1, 0, 0, 0), SIMD4(0, 1, 0, 0), SIMD4(0, 0, 1, 0),

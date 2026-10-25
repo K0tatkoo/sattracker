@@ -9,6 +9,8 @@ struct GlobeView: UIViewRepresentable {
     var active: Bool
     /// Where the satellite's card covers the globe, while it is open.
     var cardSpace: CardPlacement?
+    /// How far the bars reach in from each edge.
+    var chrome = EdgeInsets()
 
     func makeUIView(context: Context) -> GlobeMTKView {
         GlobeMTKView(model: model)
@@ -17,6 +19,7 @@ struct GlobeView: UIViewRepresentable {
     func updateUIView(_ view: GlobeMTKView, context: Context) {
         view.isPaused = !active
         view.cardSpace = cardSpace
+        view.chrome = chrome
     }
 }
 
@@ -27,6 +30,10 @@ final class GlobeMTKView: MTKView, UIGestureRecognizerDelegate {
     var cardSpace: CardPlacement? {
         get { renderer?.cardSpace }
         set { renderer?.cardSpace = newValue }
+    }
+    var chrome: EdgeInsets {
+        get { renderer?.chrome ?? EdgeInsets() }
+        set { renderer?.chrome = newValue }
     }
 
     init(model: AppModel) {
