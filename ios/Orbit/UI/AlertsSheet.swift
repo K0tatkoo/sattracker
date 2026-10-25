@@ -46,7 +46,7 @@ struct AlertsSheet: View {
 
                 Section {
                 } footer: {
-                    Text("Orbit plans the next two days of alerts whenever you open it, and again in the background when iOS allows. Your location stays on this iPhone.")
+                    Text("Orbit plans the next two days of alerts whenever you open it, and again in the background when iOS allows. Your location stays on this \(UIDevice.current.model).")
                 }
             }
             .navigationTitle("Pass alerts")

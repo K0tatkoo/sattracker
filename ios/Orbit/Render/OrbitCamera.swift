@@ -58,6 +58,17 @@ struct OrbitCamera {
         radius = Self.fitDistance(aspect: aspect)
     }
 
+    /// The screen changed shape: keep the zoom the person chose, measured
+    /// against the fit, so a whole Earth stays whole.
+    mutating func refit(from old: Double, to new: Double) {
+        let scale = Self.fitDistance(aspect: new) / Self.fitDistance(aspect: old)
+        radius = min(max(radius * scale, Self.minDistance), Self.maxDistance)
+        if var g = goal {
+            g.position *= scale
+            goal = g
+        }
+    }
+
     mutating func set(position p: SIMD3<Double>) {
         // A zero or non-finite point would turn every angle into NaN for good.
         guard p.x.isFinite, p.y.isFinite, p.z.isFinite, length(p) > 1e-9 else { return }

@@ -40,7 +40,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Orbit puts you on the globe and works out when satellites pass over you. Your location stays on this iPhone.</string>
+	<string>Orbit puts you on the globe and works out when satellites pass over you. Your location stays on this device.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

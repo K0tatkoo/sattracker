@@ -4,18 +4,33 @@ import SwiftUI
 /// The globe edge to edge, with the chrome floating over it in Liquid Glass:
 /// About, the brand and search/alerts in the toolbar, the categories along the
 /// bottom, and one sheet at a time (a satellite's card, or a toolbar sheet).
+///
+/// Where the width is regular (iPad, iPhone Duo open) a sheet would be a
+/// centred form over the globe, so the card floats beside it instead (or
+/// under it, on a screen taller than it is wide) and the globe stays usable.
+/// Only the size class decides, never the device or the orientation: an iPad
+/// window narrowed in Split View gets the phone's sheet again.
 struct RootView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.scenePhase) private var phase
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.horizontalSizeClass) private var widthClass
+    @State private var size = CGSize.zero
 
     var body: some View {
+        let placement = CardPlacement(regular: widthClass == .regular, size: size)
+        // The floating card lives outside the one-sheet slot; the toolbar's
+        // sheets still take it, and they put the card away as on the phone.
+        let floats = placement != .sheet
         NavigationStack {
-            GlobeView(model: model, active: phase == .active)
+            GlobeView(model: model, active: phase == .active,
+                      cardSpace: model.sheet == .card ? placement : nil)
                 .ignoresSafeArea()
                 .background(Color(Palette.of(scheme).bg).ignoresSafeArea())
+                .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
                 .overlay(alignment: .top) { ToastView().padding(.top, 6) }
                 .overlay { if model.booting { BootBadge() } }
+                .overlay(alignment: placement.alignment) { FloatingCard(placement: placement) }
                 .safeAreaInset(edge: .bottom) { CategoryBar().padding(.bottom, 6) }
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
@@ -26,12 +41,18 @@ struct RootView: View {
                         Button("Pass alerts", systemImage: model.alerts.watched.isEmpty ? "bell" : "bell.badge") {
                             model.open(.alerts)
                         }
+                        .keyboardShortcut("a", modifiers: [.command, .shift])
                         Button("Find a satellite", systemImage: "magnifyingglass") { model.open(.search) }
+                            .keyboardShortcut("f")
                     }
                 }
                 .navigationBarTitleDisplayMode(.inline)
         }
-        .sheet(item: Binding(get: { model.sheet }, set: { model.sheet = $0 }), onDismiss: { model.sheetDismissed() }) { sheet in
+        .sheet(item: Binding(get: { floats && model.sheet == .card ? nil : model.sheet },
+                             // Unfolding (or widening the window) takes the
+                             // card out of its sheet: that is not a dismissal.
+                             set: { if !($0 == nil && floats && model.sheet == .card) { model.sheet = $0 } }),
+               onDismiss: { model.sheetDismissed() }) { sheet in
             switch sheet {
             case .card: SatelliteCard()
             case .search: SearchSheet()
@@ -53,6 +74,74 @@ struct RootView: View {
     }
 }
 
+/// How the satellite's card is shown in the space there is.
+enum CardPlacement: Equatable {
+    /// The phone's glass sheet, pulled up for the passes.
+    case sheet
+    /// A glass panel down the leading side, this wide.
+    case side(width: CGFloat)
+    /// A glass panel along the bottom, this tall.
+    case bottom(height: CGFloat)
+
+    init(regular: Bool, size: CGSize) {
+        guard regular, size.width > 0 else {
+            self = .sheet
+            return
+        }
+        // Beside the globe where the screen is wider than tall (the globe fits
+        // the height, so the width has room to spare), under it otherwise.
+        if size.width > size.height, size.width >= 800 {
+            self = .side(width: min(400, max(340, size.width * 0.3)))
+        } else {
+            self = .bottom(height: min(max(390, size.height * 0.36), 480))
+        }
+    }
+
+    var alignment: Alignment {
+        if case .side = self { .topLeading } else { .bottom }
+    }
+}
+
+/// The card where a sheet would be a modal form: a glass panel that leaves the
+/// globe free to turn, zoom and tap (another dot and the card follows it).
+private struct FloatingCard: View {
+    let placement: CardPlacement
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        ZStack {
+            if model.sheet == .card {
+                panel
+            }
+        }
+        .animation(.smooth(duration: 0.3), value: model.sheet == .card)
+    }
+
+    @ViewBuilder private var panel: some View {
+        let shape = RoundedRectangle(cornerRadius: 30, style: .continuous)
+        switch placement {
+        case .sheet:
+            EmptyView()
+        case .side(let width):
+            SatelliteCard(floating: true)
+                .frame(width: width)
+                .frame(maxHeight: .infinity)
+                .glassEffect(.regular, in: shape)
+                .padding([.leading, .top], 16)
+                .padding(.bottom, 8)
+                .transition(.move(edge: .leading).combined(with: .opacity))
+        case .bottom(let height):
+            SatelliteCard(floating: true)
+                .frame(maxWidth: 640)
+                .frame(height: height)
+                .glassEffect(.regular, in: shape)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 8)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+        }
+    }
+}
+
 /// "ORBIT." with the mark, as on the page's top bar.
 private struct Brand: View {
     var body: some View {
@@ -71,8 +160,10 @@ private struct Brand: View {
 }
 
 /// The categories, as glass chips: lit in the category's colour when shown.
+/// Centred where they all fit (an iPad), scrolling where they do not.
 private struct CategoryBar: View {
     @Environment(AppModel.self) private var model
+    @State private var width: CGFloat = 0
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -83,8 +174,10 @@ private struct CategoryBar: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 4)
             }
+            .frame(minWidth: width)
         }
         .scrollClipDisabled()
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
     }
 }
 

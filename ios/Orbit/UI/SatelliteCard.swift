@@ -3,9 +3,12 @@ import SwiftUI
 
 /// The tapped satellite: a glass sheet that floats over the bottom of the
 /// globe and leaves it usable (tap another dot and the card follows it).
-/// Pulled up, it lists the passes of the next day.
+/// Pulled up, it lists the passes of the next day. Where the width is regular
+/// it is a floating panel instead (`floating`), with everything in it at once.
 struct SatelliteCard: View {
     static let compact: CGFloat = 356
+
+    var floating = false
 
     @Environment(AppModel.self) private var model
     @Environment(\.colorScheme) private var scheme
@@ -66,7 +69,7 @@ struct SatelliteCard: View {
                         .monospacedDigit()
                 }
 
-                if detent == .large {
+                if floating || detent == .large {
                     upcoming
                     More(sat: sat)
                 }
@@ -208,6 +211,7 @@ private struct HeaderButtons: View {
                     model.following.toggle()
                 }
                 round("Close", "xmark", on: false) { model.deselect() }
+                    .keyboardShortcut(.cancelAction)
             }
         }
         .controlSize(.large)

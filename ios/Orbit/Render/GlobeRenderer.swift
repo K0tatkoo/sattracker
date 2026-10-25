@@ -77,9 +77,12 @@ final class GlobeRenderer: NSObject, MTKViewDelegate {
     var dark = true
     var camera = OrbitCamera()
     private var lastTime = CACurrentMediaTime()
-    private var fitted = false
+    /// The aspect the camera's distance was last fitted to.
+    private var fittedAspect: Double?
+    /// Where the card covers the globe; the Earth moves into what is left.
+    var cardSpace: CardPlacement?
     /// How far up the Earth is moved for the card, points.
-    private var shiftPt = 0.0
+    private var shiftPt = SIMD2<Double>(0, 0)
     private let startTime = CACurrentMediaTime()
 
     /// Kept from the last frame, for picking.
@@ -199,10 +202,21 @@ final class GlobeRenderer: NSObject, MTKViewDelegate {
         let store = model.store
         store.propagate(jd: jd)
 
-        // Camera: fitted to the screen once, requests from the model, then the controls.
-        if !fitted, view.drawableSize.width > 0, view.drawableSize.height > 0 {
-            fitted = true
-            camera.fit(aspect: view.drawableSize.width / view.drawableSize.height)
+        // Camera: fitted to the screen, requests from the model, then the
+        // controls. When the screen changes shape (turned, an iPad window
+        // resized, an iPhone Duo opened or closed) the distance follows, so the
+        // Earth fills as much of the new screen as it did of the old.
+        if view.drawableSize.width > 0, view.drawableSize.height > 0 {
+            let aspect = view.drawableSize.width / view.drawableSize.height
+            if let was = fittedAspect {
+                if abs(aspect - was) > 0.01 {
+                    camera.refit(from: was, to: aspect)
+                    fittedAspect = aspect
+                }
+            } else {
+                camera.fit(aspect: aspect)
+                fittedAspect = aspect
+            }
         }
         if let request = model.cameraRequest {
             model.cameraRequest = nil
@@ -217,13 +231,22 @@ final class GlobeRenderer: NSObject, MTKViewDelegate {
         let drawable = view.drawableSize
         guard drawable.width > 0, drawable.height > 0 else { return }
 
-        // While the card is open the Earth moves up into the space left
-        // between the toolbar and the card, so what you tapped stays in view.
+        // While the card is open the Earth moves into the space it leaves:
+        // up between the toolbar and the card, or across beside a side panel,
+        // so what you tapped stays in view.
         let top = Double(view.safeAreaInsets.top) + 44
-        let target = model.sheet == .card ? max(0, (Double(SatelliteCard.compact) + 8 - top) / 2) : 0
+        let target: SIMD2<Double>
+        switch cardSpace {
+        case .sheet: target = SIMD2(0, max(0, (Double(SatelliteCard.compact) + 8 - top) / 2))
+        case .side(let width): target = SIMD2((Double(width) + 16) / 2, 0)
+        case .bottom(let height):
+            target = SIMD2(0, max(0, (Double(height) + 8 + Double(view.safeAreaInsets.bottom) + 56 - top) / 2))
+        case nil: target = .zero
+        }
         shiftPt += (target - shiftPt) * (1 - pow(0.82, min(max(dt, 0), 0.25) * 60))
         let shift = simd_float4x4(columns: (SIMD4(1, 0, 0, 0), SIMD4(0, 1, 0, 0), SIMD4(0, 0, 1, 0),
-                                            SIMD4(0, Float(2 * shiftPt / max(viewSizePt.height, 1)), 0, 1)))
+                                            SIMD4(Float(2 * shiftPt.x / max(viewSizePt.width, 1)),
+                                                  Float(2 * shiftPt.y / max(viewSizePt.height, 1)), 0, 1)))
         let proj = shift * OrbitCamera.projection(aspect: drawable.width / drawable.height)
         let viewM = camera.view
         viewProj = proj * viewM

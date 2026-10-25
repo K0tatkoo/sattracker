@@ -101,6 +101,16 @@ final class AppModel {
             booting = false
         }
         Task { await refreshPinned() }
+        #if DEBUG
+        // Screenshots on every screen size without tapping:
+        // SIMCTL_CHILD_ORBIT_OPEN=25544 xcrun simctl launch <udid> com.kotatko.sattracker
+        if let norad = ProcessInfo.processInfo.environment["ORBIT_OPEN"].flatMap(Int.init) {
+            Task {
+                try? await Task.sleep(for: .seconds(2))
+                openSatellite(norad)
+            }
+        }
+        #endif
     }
 
     /// The app came to the front (true) or left it (false).

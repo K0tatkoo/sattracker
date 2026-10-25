@@ -23,7 +23,7 @@ struct AboutSheet: View {
                 }
 
                 Section {
-                    Text("Real satellites in real time, propagated on your iPhone from Celestrak orbital elements. Free, no ads, no accounts, and your location never leaves the device.")
+                    Text("Real satellites in real time, propagated on your \(UIDevice.current.model) from Celestrak orbital elements. Free, no ads, no accounts, and your location never leaves the device.")
                 }
 
                 Section("Where it comes from") {

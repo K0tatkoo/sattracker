@@ -1,4 +1,4 @@
-# Orbit for iPhone. The Xcode project is generated from this file:
+# Orbit for iPhone and iPad. The Xcode project is generated from this file:
 #   cd ios && xcodegen
 # so the project stays readable text; Orbit.xcodeproj is committed so it also
 # opens straight in Xcode.
@@ -67,7 +67,7 @@ targets:
           - UIInterfaceOrientationLandscapeRight
         NSLocationWhenInUseUsageDescription: >-
           Orbit puts you on the globe and works out when satellites pass over you.
-          Your location stays on this iPhone.
+          Your location stays on this device.
         # Pass alerts are planned again when iOS grants a background moment.
         UIBackgroundModes:
           - fetch
@@ -112,7 +112,7 @@ targets:
         # Without the App Group (a free Apple ID) the widget finds its own location.
         NSWidgetWantsLocation: true
         NSLocationWhenInUseUsageDescription: >-
-          The widget works out when the ISS passes over you. Your location stays on this iPhone.
+          The widget works out when the ISS passes over you. Your location stays on this device.
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.kotatko.sattracker.widget

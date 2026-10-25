@@ -7,6 +7,8 @@ struct GlobeView: UIViewRepresentable {
     let model: AppModel
     /// Off while the app is in the background: Metal may not draw then.
     var active: Bool
+    /// Where the satellite's card covers the globe, while it is open.
+    var cardSpace: CardPlacement?
 
     func makeUIView(context: Context) -> GlobeMTKView {
         GlobeMTKView(model: model)
@@ -14,6 +16,7 @@ struct GlobeView: UIViewRepresentable {
 
     func updateUIView(_ view: GlobeMTKView, context: Context) {
         view.isPaused = !active
+        view.cardSpace = cardSpace
     }
 }
 
@@ -21,6 +24,10 @@ final class GlobeMTKView: MTKView, UIGestureRecognizerDelegate {
     private var renderer: GlobeRenderer?
     private let model: AppModel
     private var lastPinch: CGFloat = 1
+    var cardSpace: CardPlacement? {
+        get { renderer?.cardSpace }
+        set { renderer?.cardSpace = newValue }
+    }
 
     init(model: AppModel) {
         self.model = model
