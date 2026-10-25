@@ -15,6 +15,7 @@ struct RootView: View {
     @Environment(\.scenePhase) private var phase
     @Environment(\.colorScheme) private var scheme
     @Environment(\.horizontalSizeClass) private var widthClass
+    @Environment(\.verticalSizeClass) private var heightClass
     @State private var size = CGSize.zero
     @State private var chrome = EdgeInsets()
 
@@ -22,7 +23,7 @@ struct RootView: View {
         // The measured size is the safe area's; the bars are the insets.
         let screen = CGSize(width: size.width + chrome.leading + chrome.trailing,
                             height: size.height + chrome.top + chrome.bottom)
-        let placement = CardPlacement(regular: widthClass == .regular, size: screen)
+        let placement = CardPlacement(regular: widthClass == .regular, shortHeight: heightClass == .compact, size: screen)
         // The floating card lives outside the one-sheet slot; the toolbar's
         // sheets still take it, and they put the card away as on the phone.
         let floats = placement.floats
@@ -89,7 +90,14 @@ enum CardPlacement: Equatable {
     /// A glass panel along the bottom, this tall.
     case bottom(height: CGFloat)
 
-    init(regular: Bool, size: CGSize) {
+    init(regular: Bool, shortHeight: Bool, size: CGSize) {
+        // A phone on its side (or a closed iPhone Duo): even the short sheet
+        // would cover most of the globe and the bar beside it, so the card
+        // stands down the side instead, as on an iPad.
+        if shortHeight, size.width > size.height {
+            self = .side(width: min(380, max(300, size.width * 0.42)))
+            return
+        }
         guard regular, size.width > 0 else {
             // A short screen (a closed iPhone Duo, a phone on its side) gets
             // the short card, so the globe and the bars beside it stay in view.

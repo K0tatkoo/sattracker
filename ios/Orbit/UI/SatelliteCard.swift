@@ -7,9 +7,9 @@ import SwiftUI
 /// it is a floating panel instead (`floating`), with everything in it at once.
 struct SatelliteCard: View {
     /// At rest: the name, the eight facts and the next pass.
-    static let compact: CGFloat = 356
+    nonisolated static let compact: CGFloat = 356
     /// At rest on a short screen: only the four facts that move.
-    static let short: CGFloat = 292
+    nonisolated static let short: CGFloat = 292
 
     var floating = false
     var compact: CGFloat = Self.compact
@@ -25,6 +25,8 @@ struct SatelliteCard: View {
     }
     @State private var nextPass: String?
     @State private var passes: [Pass]?
+    /// The width the card's content has, for the header's layout.
+    @State private var width: CGFloat = 0
 
     var body: some View {
         Group {
@@ -53,21 +55,32 @@ struct SatelliteCard: View {
         let color = Color(palette.color(for: sat.category.id))
         return ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                HStack(alignment: .top, spacing: 12) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(sat.entry.name.isEmpty ? "Unknown" : sat.entry.name)
-                            .font(.title2.bold())
-                            .lineLimit(2)
-                            .minimumScaleFactor(0.7)
-                        Text(sat.category.label)
-                            .font(.caption.weight(.bold))
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(color, in: .capsule)
-                            .foregroundStyle(Color(palette.tagInk))
+                let title = VStack(alignment: .leading, spacing: 8) {
+                    Text(sat.entry.name.isEmpty ? "Unknown" : sat.entry.name)
+                        .font(.title2.bold())
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.7)
+                    Text(sat.category.label)
+                        .font(.caption.weight(.bold))
+                        .lineLimit(1)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(color, in: .capsule)
+                        .foregroundStyle(Color(palette.tagInk))
+                }
+                // A narrow panel (a phone on its side) has no room beside the
+                // name for the three buttons: they go under it.
+                if width > 0 && width < 300 {
+                    VStack(alignment: .leading, spacing: 12) {
+                        title
+                        HeaderButtons(sat: sat)
                     }
-                    Spacer(minLength: 0)
-                    HeaderButtons(sat: sat)
+                } else {
+                    HStack(alignment: .top, spacing: 12) {
+                        title
+                        Spacer(minLength: 0)
+                        HeaderButtons(sat: sat)
+                    }
                 }
 
                 TimelineView(.periodic(from: .now, by: 1)) { _ in
@@ -88,6 +101,7 @@ struct SatelliteCard: View {
                     More(sat: sat)
                 }
             }
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
             .padding(.horizontal, 20)
             .padding(.top, 20)
             .padding(.bottom, 12)
@@ -203,9 +217,9 @@ private struct Facts: View {
             Text(kv.1)
                 .font(.subheadline.weight(.semibold))
                 .monospacedDigit()
-                .lineLimit(2)
+                .lineLimit(3)
                 .minimumScaleFactor(0.8)
-                // Wrap to its second line rather than shrink: in a narrow
+                // Wrap to its next line rather than shrink: in a narrow
                 // panel the grid otherwise sized the row for two lines and
                 // drew one, leaving a gap under the facts.
                 .fixedSize(horizontal: false, vertical: true)
