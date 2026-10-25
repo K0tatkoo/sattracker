@@ -42,11 +42,18 @@ Guidelines as they stood then — re-read the guidelines before submitting.
   > notifications the user switched on (a bell on a satellite's card);
   > nothing is pushed from a server. The home-screen widget shows the next
   > ISS pass.
-- **Screenshots:** 6.9" iPhone (1320 × 2868). The project also targets iPad
-  (`TARGETED_DEVICE_FAMILY: "1,2"`), which makes 13" iPad screenshots
-  (2064 × 2752) mandatory and means App Review may test on an iPad — check
-  the globe, the card and every sheet in the iPad simulator first, or set the
-  family to `"1"`.
+- **Screenshots:** 6.9" iPhone (1320 × 2868) and 13" iPad (2064 × 2752): the
+  project targets iPad (`TARGETED_DEVICE_FAMILY: "1,2"`), so the iPad set is
+  mandatory and App Review may test on an iPad. The iPad and iPhone Duo
+  layouts were checked in the simulators on 2026-10-25 (iPad Pro 13", iPad
+  mini, the Duo closed and open, both ways round, folding with the card open).
+  A debug build opens a satellite by itself for screenshots:
+  `SIMCTL_CHILD_ORBIT_OPEN=25544 xcrun simctl launch <udid> com.kotatko.sattracker`.
+  If App Store Connect asks for iPhone Duo screenshots, take them in the Duo
+  simulator (Device Hub's Closed / Open buttons fold it; simctl cannot).
+- **Build with Xcode 27.1 or later** (the iOS 27.1 SDK). On the iPhone Duo an
+  app built with an older SDK runs in a smaller window and keeps horizontal
+  bars; built with 27.1 it fills both screens and its bars move down the side.
 
 ## Before the first submission
 
