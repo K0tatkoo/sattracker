@@ -176,7 +176,7 @@ private struct Facts: View {
             ("From you", fromYou),
         ]
         let shown = movingOnly ? Array(cells.suffix(4)) : cells
-        Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 12) {
+        Grid(alignment: .topLeading, horizontalSpacing: 16, verticalSpacing: 12) {
             ForEach(0..<shown.count / 2, id: \.self) { row in
                 GridRow {
                     cell(shown[row * 2])
@@ -205,6 +205,10 @@ private struct Facts: View {
                 .monospacedDigit()
                 .lineLimit(2)
                 .minimumScaleFactor(0.8)
+                // Wrap to its second line rather than shrink: in a narrow
+                // panel the grid otherwise sized the row for two lines and
+                // drew one, leaving a gap under the facts.
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
