@@ -7,8 +7,10 @@ import SwiftUI
 /// the page drew is here in the same order and the same colours — the raised
 /// Earth on the surface colour, its graticule, the atmosphere and the stars on
 /// the dark theme, fixed-size satellite dots, the selection ring, the selected
-/// satellite's orbit and the "you are here" dot. (The GNSS beams and glows are
-/// Android only: iOS tells an app nothing about the satellites it hears.)
+/// satellite's orbit and the "you are here" dot. The GNSS beams and glows are
+/// the one difference: Android lights the satellites the phone uses for its
+/// fix, but iOS tells an app nothing about the satellites it hears, so here
+/// they light every navigation satellite above your horizon, from its orbit.
 @MainActor
 final class GlobeRenderer: NSObject, MTKViewDelegate {
     // The Swift twin of `Frame` in Shaders.metal.
@@ -66,11 +68,16 @@ final class GlobeRenderer: NSObject, MTKViewDelegate {
     private let earthVertices, earthIndices, graticule, stars, nebulae: MTLBuffer
     private let earthIndexCount, graticuleCount, starCount, nebulaCount: Int
 
-    private static let maxSprites = 4000 + 8
+    /// Every GNSS category's cap together, so even all of them would fit
+    /// (about half are ever above you).
+    private static let maxBeams = 180
+    /// The dots, the ring and you, then a pulse and a glow for each beam.
+    private static let maxSprites = 4000 + 8 + 2 * maxBeams
     private static let trailSegments = 120
     private static let inFlight = 3
     private var spriteBuffers: [MTLBuffer] = []
     private var trailBuffers: [MTLBuffer] = []
+    private var beamBuffers: [MTLBuffer] = []
     private var frameIndex = 0
     private let semaphore = DispatchSemaphore(value: GlobeRenderer.inFlight)
 
@@ -97,6 +104,20 @@ final class GlobeRenderer: NSObject, MTKViewDelegate {
     private var trail: [Segment] = []
     private var trailNorad: Int?
     private var trailTime = 0.0
+
+    /// A navigation satellite above your horizon: where it is in the store
+    /// (good while the store's version is `overheadVersion`), and how bright
+    /// to draw it — fainter low down, where buildings and hills get in the way.
+    private struct Overhead {
+        let index: Int
+        let norad: Int
+        let strength: Float
+    }
+    private var overhead: [Overhead] = []
+    private var overheadNorads: Set<Int> = []
+    private var overheadVersion = -1
+    private var overheadObserver: Geodetic?
+    private var overheadTime = 0.0
 
     init?(view: MTKView, model: AppModel) {
         guard let device = view.device ?? MTLCreateSystemDefaultDevice(),
@@ -174,6 +195,7 @@ final class GlobeRenderer: NSObject, MTKViewDelegate {
         for _ in 0..<Self.inFlight {
             spriteBuffers.append(device.makeBuffer(length: Self.maxSprites * MemoryLayout<Sprite>.stride, options: .storageModeShared)!)
             trailBuffers.append(device.makeBuffer(length: Self.trailSegments * MemoryLayout<Segment>.stride, options: .storageModeShared)!)
+            beamBuffers.append(device.makeBuffer(length: Self.maxBeams * MemoryLayout<Segment>.stride, options: .storageModeShared)!)
         }
         super.init()
     }
@@ -280,7 +302,7 @@ final class GlobeRenderer: NSObject, MTKViewDelegate {
         let dotSize = Float(max(7, min(18, 22 - camDist)) * (dark ? 1 : 0.72))
         let dotShape: Shape = dark ? .soft : .solid
         var count = 0
-        for s in store.sats where s.alive && count < Self.maxSprites - 2 {
+        for s in store.sats where s.alive && count < Self.maxSprites - 2 - 2 * Self.maxBeams {
             sprites[count] = Sprite(s.pos, size: dotSize, color: pal.color(for: s.category.id), alpha: 1, shape: dotShape)
             count += 1
         }
@@ -302,6 +324,44 @@ final class GlobeRenderer: NSObject, MTKViewDelegate {
                 youIndex = count
                 count += 1
             }
+        }
+
+        // The navigation satellites above you, as the page draws the ones in
+        // use: a beam from you to each, a pulse running down it from the
+        // satellite, and a glow on the satellite, all blinking together.
+        updateOverhead(now: now, date: date)
+        let beamBuf = beamBuffers[frameIndex]
+        let beams = beamBuf.contents().bindMemory(to: Segment.self, capacity: Self.maxBeams)
+        var beamCount = 0
+        var pulses = count..<count, glows = count..<count
+        if let o = model.observer, !overhead.isEmpty {
+            let you = SatStore.sceneVector(latDeg: o.latitudeDeg, lonDeg: o.longitudeDeg, radius: 1.003)
+            let t = now - startTime
+            let phase = (t * 0.9).truncatingRemainder(dividingBy: 1)
+            let first = count
+            for (i, g) in overhead.enumerated() where g.index < store.sats.count {
+                let s = store.sats[g.index]
+                guard s.alive else { continue }
+                let c = pal.color(for: s.category.id)
+                beams[beamCount] = Segment(you, s.pos, SIMD4(c.simd, 0.25 * g.strength), SIMD4(c.simd, g.strength))
+                beamCount += 1
+                // 0 at the satellite, 1 at you: the signal comes down.
+                let u = Float((phase + Double(i) * 0.11).truncatingRemainder(dividingBy: 1))
+                sprites[count] = Sprite(s.pos + (you - s.pos) * u, size: 11, color: c,
+                                        alpha: (0.5 + 0.5 * sin(u * .pi)) * g.strength, shape: .glow)
+                count += 1
+            }
+            pulses = first..<count
+            let blink = Float(0.28 + 0.72 * (0.5 + 0.5 * sin(t * 7)))
+            let glowStart = count
+            for g in overhead where g.index < store.sats.count {
+                let s = store.sats[g.index]
+                guard s.alive, !hiddenByEarth(SIMD3<Double>(s.pos)) else { continue }
+                sprites[count] = Sprite(s.pos, size: dark ? 28 : 24, color: pal.color(for: s.category.id),
+                                        alpha: blink * g.strength, shape: .glow)
+                count += 1
+            }
+            glows = glowStart..<count
         }
 
         // The selected satellite's orbit, every 0.8 s.
@@ -401,6 +461,35 @@ final class GlobeRenderer: NSObject, MTKViewDelegate {
             enc.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6, instanceCount: trailCount)
         }
 
+        // The beams, their pulses and the glows, under the dots: light on the
+        // slate, plain alpha on light. A beam to a satellite above your horizon
+        // never passes through the Earth; the depth test hides the ones on the
+        // far side. The glows skip it, as the ring does, and are left out
+        // behind the Earth instead.
+        if beamCount > 0 {
+            var tint = SIMD4<Float>(1, 1, 1, dark ? 0.6 : 0.7)
+            var width: Float = 1
+            enc.setRenderPipelineState(dark ? lineAddPSO : linePSO)
+            enc.setDepthStencilState(depthTest)
+            enc.setVertexBuffer(beamBuf, offset: 0, index: 0)
+            enc.setVertexBytes(&tint, length: 16, index: 2)
+            enc.setVertexBytes(&width, length: 4, index: 3)
+            enc.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6, instanceCount: beamCount)
+        }
+        enc.setVertexBuffer(spriteBuf, offset: 0, index: 0)
+        if !pulses.isEmpty {
+            enc.setRenderPipelineState(dark ? spriteAddPSO : spritePSO)
+            enc.setDepthStencilState(depthTest)
+            enc.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6,
+                               instanceCount: pulses.count, baseInstance: pulses.lowerBound)
+        }
+        if !glows.isEmpty {
+            enc.setRenderPipelineState(dark ? spriteAddPSO : spritePSO)
+            enc.setDepthStencilState(depthNone)
+            enc.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6,
+                               instanceCount: glows.count, baseInstance: glows.lowerBound)
+        }
+
         // The satellites, then the ring over its dot.
         enc.setVertexBuffer(spriteBuf, offset: 0, index: 0)
         if satCount > 0 {
@@ -456,15 +545,17 @@ final class GlobeRenderer: NSObject, MTKViewDelegate {
     // MARK: - Picking
 
     /// The page's screen-space pick: the visible dot nearest the finger within
-    /// 24 points; dots within 2 points of each other go to the first in the
-    /// catalogue (the ISS, not a ship docked to it).
+    /// 24 points (28 for a glowing one, which is drawn bigger); dots within
+    /// 2 points of each other go to the first in the catalogue (the ISS, not a
+    /// ship docked to it).
     func pick(at point: CGPoint) -> Int? {
-        let radius = 24.0, tie = 2.0
+        let tie = 2.0
         var best: Int?
         var bestD = Double.infinity
         for s in model.store.sats where s.alive {
             let p = SIMD3<Double>(s.pos)
             guard !hiddenByEarth(p), let scr = toScreen(s.pos) else { continue }
+            let radius = overheadNorads.contains(s.norad) ? 28.0 : 24.0
             let d = hypot(scr.x - point.x, scr.y - point.y)
             if d < radius && d < bestD - tie {
                 best = s.norad
@@ -532,6 +623,33 @@ final class GlobeRenderer: NSObject, MTKViewDelegate {
             }
             prev = (v, f)
         }
+    }
+
+    // MARK: - The navigation satellites above you
+
+    /// Which GNSS satellites are above your horizon, from their orbits: the
+    /// same look angles the card's "From you" shows. Worked out once a second
+    /// (one takes hours to cross the sky), and at once when the satellites or
+    /// you change.
+    private func updateOverhead(now: Double, date: Date) {
+        let store = model.store
+        guard let o = model.observer else {
+            overhead.removeAll()
+            overheadNorads.removeAll()
+            overheadObserver = nil
+            return
+        }
+        guard store.version != overheadVersion || o != overheadObserver || now - overheadTime > 1 else { return }
+        overheadVersion = store.version
+        overheadObserver = o
+        overheadTime = now
+        overhead.removeAll(keepingCapacity: true)
+        let jd = Julian.jday(date)
+        for (i, s) in store.sats.enumerated() where s.category.gnss && overhead.count < Self.maxBeams {
+            guard let la = Look.angles(s.satrec, jd: jd, from: o), la.elevationDeg > 0 else { continue }
+            overhead.append(Overhead(index: i, norad: s.norad, strength: Float(0.35 + 0.65 * min(1, la.elevationDeg / 15))))
+        }
+        overheadNorads = Set(overhead.map(\.norad))
     }
 
     // MARK: - Geometry

@@ -34,6 +34,10 @@ struct AboutSheet: View {
                     LabeledContent("Drawing", value: "Metal")
                 }
 
+                Section("Glowing satellites") {
+                    Text("GPS, GLONASS, Galileo and BeiDou satellites glow, with a beam down to you, while they are above your horizon. iOS doesn't tell apps which satellites your \(UIDevice.current.model) actually uses for its location, so Orbit shows the ones it could be using.")
+                }
+
                 Section("Location") {
                     LabeledContent("Your location", value: locationText)
                     if model.locationAccess == .denied {

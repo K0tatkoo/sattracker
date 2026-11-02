@@ -97,6 +97,7 @@ struct SatelliteCard: View {
                 }
 
                 if floating || detent == .large {
+                    if sat.category.gnss { GlowNote() }
                     upcoming
                     More(sat: sat)
                 }
@@ -226,6 +227,21 @@ private struct Facts: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
+    }
+}
+
+/// What a navigation satellite's glow means, and what it cannot: Android's
+/// glow is a satellite the phone uses, iOS's only one it could be using.
+private struct GlowNote: View {
+    var body: some View {
+        Label {
+            Text("Navigation satellites glow while they are above your horizon, where your \(UIDevice.current.model) could be using them; the lower, the fainter. iOS doesn't tell apps which ones it really uses.")
+        } icon: {
+            Image(systemName: "dot.radiowaves.left.and.right")
+        }
+        .font(.footnote)
+        .foregroundStyle(.secondary)
+        .fixedSize(horizontal: false, vertical: true)
     }
 }
 
