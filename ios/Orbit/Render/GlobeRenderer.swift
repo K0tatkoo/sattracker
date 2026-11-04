@@ -81,7 +81,7 @@ final class GlobeRenderer: NSObject, MTKViewDelegate {
     private var frameIndex = 0
     private let semaphore = DispatchSemaphore(value: GlobeRenderer.inFlight)
 
-    private var earthTextures: [Bool: MTLTexture] = [:]
+    private var earthMap: MTLTexture?
     var dark = true
     var camera = OrbitCamera()
     /// The satellite the camera is flying in to.
@@ -206,11 +206,11 @@ final class GlobeRenderer: NSObject, MTKViewDelegate {
 
     private var palette: Palette { .of(dark: dark) }
 
+    /// The grey map, made on first use; the shader paints it in the theme.
     private func earthTexture() -> MTLTexture? {
-        if let t = earthTextures[dark] { return t }
-        let t = EarthTexture.make(device: device, queue: queue, palette: palette)
-        earthTextures[dark] = t
-        return t
+        if let t = earthMap { return t }
+        earthMap = EarthTexture.make(device: device, queue: queue)
+        return earthMap
     }
 
     // MARK: - Frame
@@ -397,6 +397,8 @@ final class GlobeRenderer: NSObject, MTKViewDelegate {
         enc.setCullMode(.back)
         enc.setVertexBuffer(earthVertices, offset: 0, index: 0)
         enc.setVertexBytes(&one, length: 4, index: 2)
+        var earthColors = (SIMD4<Float>(pal.land.simd, 1), SIMD4<Float>(pal.deep.simd, 1), SIMD4<Float>(pal.shelf.simd, 1))
+        enc.setFragmentBytes(&earthColors, length: MemoryLayout<SIMD4<Float>>.stride * 3, index: 0)
         enc.setFragmentTexture(earthTexture(), index: 0)
         enc.setFragmentSamplerState(sampler, index: 0)
         enc.drawIndexedPrimitives(type: .triangle, indexCount: earthIndexCount, indexType: .uint16, indexBuffer: earthIndices, indexBufferOffset: 0)

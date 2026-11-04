@@ -46,13 +46,32 @@ vertex EarthOut earthVertex(uint vid [[vertex_id]],
     return o;
 }
 
+/// The theme's Earth: land, deep ocean, continental shelf (Palette.swift).
+struct EarthColors {
+    float4 land;
+    float4 deep;
+    float4 shelf;
+};
+
 /// MeshLambertMaterial: the repainted map under an ambient light and one lamp
 /// that rides on the camera, top left.
+///
+/// The map arrives grey (land 0-3, ocean 12-30 of 255; EarthTexture.swift)
+/// and is painted here, after the sampler has blended neighbouring map
+/// pixels, so the coast is the smooth line where the blended grey crosses 6.
+/// That line is a pixel and a half wide wherever the map is magnified (a
+/// close-up), and never wider than the old 3..9 ramp wherever it is not,
+/// which is the whole-Earth view as it always looked.
 fragment float4 earthFragment(EarthOut in [[stage_in]],
                               constant Frame &f [[buffer(1)]],
+                              constant EarthColors &c [[buffer(0)]],
                               texture2d<float> map [[texture(0)]],
                               sampler s [[sampler(0)]]) {
-    float3 albedo = map.sample(s, in.uv).rgb;
+    float g = map.sample(s, in.uv).r * 255.0;
+    float w = clamp(fwidth(g) * 0.75, 0.4, 3.0);
+    float sea = saturate((g - 6.0) / (2.0 * w) + 0.5);
+    float3 ocean = mix(c.deep.rgb, c.shelf.rgb, saturate((g - 11.0) / 18.0));
+    float3 albedo = mix(c.land.rgb, ocean, sea);
     float ndl = max(dot(normalize(in.normal), f.lampDir), 0.0);
     return float4(albedo * (f.ambient + f.lamp * ndl), 1);
 }
