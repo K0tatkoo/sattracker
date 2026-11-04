@@ -162,19 +162,45 @@ function initScene(){
 
 // ---- the globe ---------------------------------------------------------------
 // The bundled texture is a greyscale map: land ~0, deep ocean ~12-17, shelves
-// ~25-30 (of 255). Rather than tint it — which can only ever make it darker —
-// it is repainted once per theme into that theme's own land / ocean colours,
-// keeping the shelf gradient. On the light theme that turns it into a light
-// globe with the continents still readable, which a multiplied tint cannot do.
+// ~25-30 (of 255), with soft coasts a couple of map pixels wide. Rather than
+// tint it — which can only ever make it darker — it is painted in the theme's
+// own land / ocean colours, keeping the shelf gradient. On the light theme
+// that turns it into a light globe with the continents still readable, which
+// a multiplied tint cannot do.
+//
+// It is painted in the Earth's shader, after the GPU has blended neighbouring
+// map pixels: the coast is then the smooth line where the blended grey crosses
+// 6, about a pixel and a half wide when zoomed right in, and never wider than
+// the old 3..9 ramp otherwise. Repainted into colours first (the fallback,
+// for a WebView without fwidth), zooming in showed every coast as a blurred
+// staircase of map pixels. The iPhone's Metal shader does the same.
 const EARTH_PALETTE = {
   dark:  { land:[0x19,0x1b,0x21], deep:[0x2e,0x2e,0x41], shelf:[0x3d,0x38,0x5a] },
   light: { land:[0xf1,0xf3,0xf7], deep:[0xb8,0xbe,0xd6], shelf:[0xcc,0xd1,0xe3] },
 };
 const earthTex = {};
+// The theme's colours for the shader, 0..1 (no colour management in r147's
+// default linear output, so these land on screen as the hex values above).
+const earthColors = { uLand:{ value:new THREE.Vector3() }, uDeep:{ value:new THREE.Vector3() }, uShelf:{ value:new THREE.Vector3() } };
+const EARTH_SHADER = `
+#ifdef USE_MAP
+  float g = texture2D( map, vUv ).r * 255.0;
+  float w = clamp( fwidth( g ) * 0.75, 0.4, 3.0 );
+  float sea = clamp( ( g - 6.0 ) / ( 2.0 * w ) + 0.5, 0.0, 1.0 );
+  vec3 ocean = mix( uDeep, uShelf, clamp( ( g - 11.0 ) / 18.0, 0.0, 1.0 ) );
+  diffuseColor.rgb *= mix( uLand, ocean, sea );
+#endif
+`;
 
 function buildEarth(){
   const geo = new THREE.SphereGeometry(SCENE_R, 96, 96);
   earthMat = new THREE.MeshLambertMaterial({ color:0x2a2c38 });
+  earthMat.extensions = { derivatives:true };      // fwidth on WebGL1 (WebGL2 has it anyway)
+  earthMat.onBeforeCompile = sh => {
+    Object.assign(sh.uniforms, earthColors);
+    sh.fragmentShader = 'uniform vec3 uLand;\nuniform vec3 uDeep;\nuniform vec3 uShelf;\n' +
+      sh.fragmentShader.replace('#include <map_fragment>', EARTH_SHADER);
+  };
   earth = new THREE.Mesh(geo, earthMat);
   // No rotation: three's SphereGeometry UV maps Greenwich (lon 0) to +X and lon -90 to +Z,
   // which exactly matches llToVec3() used for satellites/markers — so they all line up.
@@ -222,6 +248,22 @@ function setEarthTexture(){
     earthMat.color.set(key==='light' ? 0xdfe2ec : 0x2a2c38);
     return;
   }
+  if (shaderPaintsEarth()){
+    if (!earthTex.grey){
+      earthTex.grey = new THREE.Texture(earthImg);
+      earthTex.grey.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
+      earthTex.grey.needsUpdate = true;
+    }
+    const pal = EARTH_PALETTE[key];
+    for (const [u, rgb] of [['uLand', pal.land], ['uDeep', pal.deep], ['uShelf', pal.shelf]])
+      earthColors[u].value.set(rgb[0]/255, rgb[1]/255, rgb[2]/255);
+    if (earthMat.map !== earthTex.grey){
+      earthMat.map = earthTex.grey; earthMat.color.set(0xffffff); earthMat.needsUpdate = true;
+    }
+    return;
+  }
+  // The shader's own material stays as it is; this fallback repaints instead.
+  earthMat.onBeforeCompile = () => {};
   if (earthTex[key] === undefined) earthTex[key] = paletteTexture(earthImg, EARTH_PALETTE[key]);
   if (earthTex[key]){
     earthMat.map = earthTex[key]; earthMat.color.set(0xffffff);
@@ -231,6 +273,11 @@ function setEarthTexture(){
     earthMat.map = earthTex.raw; earthMat.color.set(key==='light' ? 0xffffff : 0x9a86c8);
   }
   earthMat.needsUpdate = true;
+}
+
+// fwidth: built into WebGL2, an extension on WebGL1 that nearly every phone has.
+function shaderPaintsEarth(){
+  return renderer.capabilities.isWebGL2 || !!renderer.extensions.get('OES_standard_derivatives');
 }
 
 function paletteTexture(img, pal){
