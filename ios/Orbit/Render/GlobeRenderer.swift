@@ -84,6 +84,8 @@ final class GlobeRenderer: NSObject, MTKViewDelegate {
     private var earthTextures: [Bool: MTLTexture] = [:]
     var dark = true
     var camera = OrbitCamera()
+    /// The satellite the camera is flying in to.
+    private var flightNorad: Int?
     private var lastTime = CACurrentMediaTime()
     /// The aspect the camera's distance was last fitted to.
     private var fittedAspect: Double?
@@ -251,8 +253,11 @@ final class GlobeRenderer: NSObject, MTKViewDelegate {
             model.cameraRequest = nil
             apply(request)
         }
-        if model.following, let sat = model.selected, sat.alive {
-            camera.goal = .init(position: framing(sat.pos), thenAutoRotate: false)
+        if camera.flight != nil, let n = flightNorad, let sat = model.store.sat(norad: n), sat.alive {
+            // It moves while the camera flies: arrive where it is by then.
+            camera.retarget(framing(sat.pos, keepZoom: false))
+        } else if model.following, let sat = model.selected, sat.alive {
+            camera.goal = .init(position: framing(sat.pos, keepZoom: true), thenAutoRotate: false)
         }
         camera.update(dt: dt)
 
@@ -520,20 +525,28 @@ final class GlobeRenderer: NSObject, MTKViewDelegate {
             camera.autoRotate = false
             camera.goal = .init(position: goal, thenAutoRotate: true)
         case let .satellite(norad):
-            // Never worked out (decayed, say): its position is a placeholder.
-            guard let sat = model.store.sat(norad: norad), sat.alive else { return }
+            // Never worked out (decayed, say): its position is a placeholder,
+            // and there is nothing to follow.
+            guard let sat = model.store.sat(norad: norad), sat.alive else {
+                model.following = false
+                return
+            }
             camera.autoRotate = false
-            camera.goal = .init(position: framing(sat.pos), thenAutoRotate: false)
+            flightNorad = norad
+            camera.fly(to: framing(sat.pos, keepZoom: false), instantly: UIAccessibility.isReduceMotionEnabled)
         }
     }
 
     /// Where to look at a satellite from: straight above it, far enough out
-    /// that it sits in front of the Earth with room around it.
-    private func framing(_ p: SIMD3<Float>) -> SIMD3<Double> {
+    /// that it sits in front of the Earth with room around it — close in for
+    /// one in low orbit, where the Earth fills the screen behind it. Following
+    /// keeps the zoom you chose, as long as it is at least that far out.
+    private func framing(_ p: SIMD3<Float>, keepZoom: Bool) -> SIMD3<Double> {
         let d = SIMD3<Double>(p)
         let r = length(d)
         guard r > 1e-6, r.isFinite else { return camera.position }
-        let dist = min(max(camera.radius, r * 1.8, r + 1.2), OrbitCamera.maxDistance)
+        let closest = max(r * 1.8, r + 1.2)
+        let dist = min(keepZoom ? max(camera.radius, closest) : closest, OrbitCamera.maxDistance)
         return normalize(d) * dist
     }
 

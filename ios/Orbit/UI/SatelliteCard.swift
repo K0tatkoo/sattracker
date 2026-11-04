@@ -27,10 +27,18 @@ struct SatelliteCard: View {
     @State private var passes: [Pass]?
     /// The width the card's content has, for the header's layout.
     @State private var width: CGFloat = 0
+    /// The last satellite on the card. The selection is cleared the moment
+    /// the card is closed or search opens over it, while the sheet is still
+    /// sliding away: it leaves showing this, not "not on the globe".
+    @State private var shown: SatStore.Sat?
+
+    private var displayed: SatStore.Sat? {
+        model.selected ?? (model.sheet == .card ? nil : shown)
+    }
 
     var body: some View {
         Group {
-            if let sat = model.selected {
+            if let sat = displayed {
                 content(sat)
             } else {
                 ContentUnavailableView("Not on the globe any more", systemImage: "circle.dashed",
@@ -42,7 +50,8 @@ struct SatelliteCard: View {
         // Turned or folded while it rests: rest at the new height.
         .onChange(of: compact) { _, now in if detent != .large { detent = .height(now) } }
         .presentationDragIndicator(.visible)
-        .task(id: PassKey(norad: model.selectedNorad, observer: model.observer)) { await computePasses() }
+        .onChange(of: model.selectedNorad, initial: true) { if let s = model.selected { shown = s } }
+        .task(id: PassKey(norad: displayed?.norad, observer: model.observer)) { await computePasses() }
     }
 
     private struct PassKey: Hashable {

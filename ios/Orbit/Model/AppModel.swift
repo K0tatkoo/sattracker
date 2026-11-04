@@ -14,7 +14,9 @@ enum ActiveSheet: String, Identifiable {
 enum CameraRequest {
     /// Swing round to face this point on the Earth (the first location fix).
     case face(latDeg: Double, lonDeg: Double)
-    /// Turn to a satellite, backing off far enough to see it.
+    /// Fly in to a satellite (picked in search, or opened from an alert or
+    /// the widget): close over one in low orbit, far enough out to see the
+    /// high ones in front of the Earth.
     case satellite(norad: Int)
 }
 
@@ -236,7 +238,10 @@ final class AppModel {
         }
     }
 
+    /// Fly in close to it, then keep it in view as it moves — until a finger
+    /// on the globe or the card's Follow button says otherwise.
     func fly(to norad: Int) {
+        following = true
         cameraRequest = .satellite(norad: norad)
     }
 
