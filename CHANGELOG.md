@@ -5,6 +5,23 @@ when something people rely on changes or goes away, MINOR for something new,
 PATCH for a fix — and each is a git tag (`vX.Y.Z`) on the commit that
 shipped. `tools/release` in Claudes Projects writes these entries.
 
+## 2.0.4 — 2026-11-04
+
+Coastlines stay sharp and smooth when you zoom all the way in
+
+- Smooth coastlines when zoomed in: the Earth's shader paints the grey map
+- iOS: smooth coastlines close up — the shader paints the grey Earth map
+- iOS 2.2.0: picking a satellite in search flies in close to it
+- iOS 2.1.0: navigation satellites above you glow, with beams down to you
+- iOS: run-on-iphone finds a phone whose tunnel is not up yet
+- iOS: App Store notes — iPad and iPhone Duo checked, screenshot launch variables, Xcode 27.1
+- iOS: on its side, the card stands beside the globe
+- iOS: facts wrap instead of shrinking, and line up at the top
+- iOS: the closed iPhone Duo — a short card, and a globe beside the side bar
+- iOS: the globe makes room for a bar down the side as well as the card
+- iOS: the card floats beside the globe on iPad
+- iOS: privacy manifests and in-app policy links for the App Store
+
 ## 2.0.3 — 2026-10-22
 
 A new icon: a ringed planet with its satellite, in the same flat violet as the other n3d apps
